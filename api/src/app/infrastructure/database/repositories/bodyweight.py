@@ -21,17 +21,22 @@ class SQLAlchemyBodyweightRepository(
         offset: int = 0,
         limit: int = 20,
     ) -> Sequence[BodyweightLog]:
-        stmt = select(BodyweightLogTable).offset(offset).limit(limit).order_by(BodyweightLogTable.recorded_at.desc())
-        
+        stmt = (
+            select(BodyweightLogTable)
+            .offset(offset)
+            .limit(limit)
+            .order_by(BodyweightLogTable.recorded_at.desc())
+        )
+
         filters = []
         if date_from:
-            filters.append(cast(BodyweightLogTable.recorded_at, Date) >= date_from)
+            filters.append(func.date(BodyweightLogTable.recorded_at) >= date_from)
         if date_to:
-            filters.append(cast(BodyweightLogTable.recorded_at, Date) <= date_to)
-            
+            filters.append(func.date(BodyweightLogTable.recorded_at) <= date_to)
+
         if filters:
             stmt = stmt.where(and_(*filters))
-            
+
         result = await self._session.execute(stmt)
         return [self._to_domain(row) for row in result.scalars().all()]
 
@@ -39,16 +44,16 @@ class SQLAlchemyBodyweightRepository(
         self, date_from: date | None = None, date_to: date | None = None
     ) -> int:
         stmt = select(func.count()).select_from(BodyweightLogTable)
-        
+
         filters = []
         if date_from:
-            filters.append(cast(BodyweightLogTable.recorded_at, Date) >= date_from)
+            filters.append(func.date(BodyweightLogTable.recorded_at) >= date_from)
         if date_to:
-            filters.append(cast(BodyweightLogTable.recorded_at, Date) <= date_to)
-            
+            filters.append(func.date(BodyweightLogTable.recorded_at) <= date_to)
+
         if filters:
             stmt = stmt.where(and_(*filters))
-            
+
         result = await self._session.execute(stmt)
         return result.scalar() or 0
 
