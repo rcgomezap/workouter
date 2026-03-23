@@ -33,3 +33,6 @@ class SQLAlchemyUnitOfWork(UnitOfWork):
 
     async def rollback(self) -> None:
         await self._session.rollback()
+
+    async def flush(self) -> None:
+        await self._session.flush()

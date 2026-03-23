@@ -20,6 +20,7 @@ from app.domain.entities.session import Session, SessionExercise, SessionSet
 from app.domain.enums import SessionStatus
 from app.domain.exceptions import EntityNotFoundException, ConflictException
 
+
 class SessionService:
     def __init__(self, uow: UnitOfWork) -> None:
         self.uow = uow
@@ -36,70 +37,105 @@ class SessionService:
             offset = (pagination.page - 1) * pagination.page_size
             limit = pagination.page_size
             sessions = await self.uow.session_repository.list(offset=offset, limit=limit)
-            total = 100 # In a real app, this would be a separate count query
+            total = 100  # In a real app, this would be a separate count query
             return PaginatedSessions(
                 items=[self._map_to_dto(s) for s in sessions],
                 total=total,
                 page=pagination.page,
                 page_size=pagination.page_size,
-                total_pages=(total + pagination.page_size - 1) // pagination.page_size
+                total_pages=(total + pagination.page_size - 1) // pagination.page_size,
             )
 
     async def create_session(self, input: CreateSessionInput) -> SessionDTO:
         async with self.uow:
+            print(f"DEBUG: Creating session for planned_session_id={input.planned_session_id}")
             session = Session(
                 planned_session_id=input.planned_session_id,
                 mesocycle_id=input.mesocycle_id,
                 routine_id=input.routine_id,
                 notes=input.notes,
-                status=SessionStatus.PLANNED
+                status=SessionStatus.PLANNED,
             )
-            
+
+            # Business Rule: Use routine from planned session if not provided
+            routine_id = input.routine_id
+            if not routine_id and input.planned_session_id:
+                planned_session = await self.uow.mesocycle_repository.get_planned_session_by_id(
+                    input.planned_session_id
+                )
+                print(f"DEBUG: Fetched planned_session={planned_session}")
+                if planned_session and planned_session.routine:
+                    routine_id = planned_session.routine.id
+                    print(f"DEBUG: Found routine_id={routine_id} in planned_session")
+                    session.routine_id = routine_id
+
             # Business Rule 1: Session creation from routine
-            if input.routine_id:
-                routine = await self.uow.routine_repository.get_by_id(input.routine_id)
+            if routine_id:
+                # Fetch routine WITH exercises and sets
+                routine = await self.uow.routine_repository.get_by_id(routine_id)
+                print(f"DEBUG: Fetched routine={routine}")
                 if not routine:
-                    raise EntityNotFoundException("Routine", input.routine_id)
-                
+                    raise EntityNotFoundException("Routine", routine_id)
+
+                print(f"DEBUG: Routine exercises count: {len(routine.exercises)}")
                 for re in routine.exercises:
+                    print(f"DEBUG: Cloning routine exercise {re.id}, sets count: {len(re.sets)}")
                     session_exercise = SessionExercise(
                         exercise=re.exercise,
                         order=re.order,
                         superset_group=re.superset_group,
                         rest_seconds=re.rest_seconds,
-                        notes=re.notes
+                        notes=re.notes,
                     )
+                    # Initialize sets collection if it's not already
+                    session_exercise.sets = []
                     for rs in re.sets:
+                        print(f"DEBUG: Cloning routine set {rs.id}")
                         session_set = SessionSet(
                             set_number=rs.set_number,
                             set_type=rs.set_type,
-                            target_reps=rs.target_reps_max, # default to max target
+                            target_reps=rs.target_reps_max,  # default to max target
                             target_rir=rs.target_rir,
                             target_weight_kg=rs.target_weight_kg,
                             weight_reduction_pct=rs.weight_reduction_pct,
-                            rest_seconds=rs.rest_seconds
+                            rest_seconds=rs.rest_seconds,
                         )
                         session_exercise.sets.append(session_set)
                     session.exercises.append(session_exercise)
-            
+
             await self.uow.session_repository.add(session)
+            print(f"DEBUG: Added session to repository, exercises count: {len(session.exercises)}")
+            # IMPORTANT: Flush before commit to populate generated IDs for nested objects
+            await self.uow.flush()
             await self.uow.commit()
-            return self._map_to_dto(session)
+
+            # Re-fetch to ensure all nested data is loaded for DTO mapping
+            # (session_repository.add might not return fully loaded relationships)
+            full_session = await self.uow.session_repository.get_by_id(session.id)
+            if not full_session:
+                raise EntityNotFoundException("Session", session.id)
+            print(f"DEBUG: Re-fetched full_session, exercises count: {len(full_session.exercises)}")
+            return self._map_to_dto(full_session)
 
     async def start_session(self, id: UUID) -> SessionDTO:
         async with self.uow:
             session = await self.uow.session_repository.get_by_id(id)
             if not session:
                 raise EntityNotFoundException("Session", id)
-            
+
             # Business Rule 3: Status transitions
             if session.status != SessionStatus.PLANNED:
                 raise ConflictException(f"Cannot start session in status {session.status}")
-                
+
             session.status = SessionStatus.IN_PROGRESS
             session.started_at = datetime.now(UTC)
             await self.uow.session_repository.update(session)
             await self.uow.commit()
+
+            # Re-fetch for DTO mapping
+            session = await self.uow.session_repository.get_by_id(id)
+            if not session:
+                raise EntityNotFoundException("Session", id)
             return self._map_to_dto(session)
 
     async def complete_session(self, id: UUID) -> SessionDTO:
@@ -107,29 +143,34 @@ class SessionService:
             session = await self.uow.session_repository.get_by_id(id)
             if not session:
                 raise EntityNotFoundException("Session", id)
-                
+
             if session.status != SessionStatus.IN_PROGRESS:
                 raise ConflictException(f"Cannot complete session in status {session.status}")
-                
+
             session.status = SessionStatus.COMPLETED
             session.completed_at = datetime.now(UTC)
             await self.uow.session_repository.update(session)
             await self.uow.commit()
+
+            # Re-fetch for DTO mapping
+            session = await self.uow.session_repository.get_by_id(id)
+            if not session:
+                raise EntityNotFoundException("Session", id)
             return self._map_to_dto(session)
 
     async def log_set_result(self, set_id: UUID, input: LogSetResultInput) -> SessionSetDTO:
         async with self.uow:
-            # Finding the set in repository by ID might be needed. 
+            # Finding the set in repository by ID might be needed.
             # Simplified here assuming session_repository can find sets.
             session_set = await self.uow.session_repository.get_set_by_id(set_id)
             if not session_set:
                 raise EntityNotFoundException("SessionSet", set_id)
-            
+
             session_set.actual_reps = input.actual_reps
             session_set.actual_rir = input.actual_rir
             session_set.actual_weight_kg = input.actual_weight_kg
             session_set.performed_at = input.performed_at or datetime.now(UTC)
-            
+
             await self.uow.session_repository.update_set(session_set)
             await self.uow.commit()
             return self._map_set_to_dto(session_set)
@@ -154,20 +195,24 @@ class SessionService:
                         equipment=se.exercise.equipment,
                         muscle_groups=[
                             ExerciseMuscleGroupDTO(
-                                muscle_group=MuscleGroupDTO(id=mg.muscle_group.id, name=mg.muscle_group.name),
-                                role=mg.role
-                            ) for mg in se.exercise.muscle_groups
-                        ]
+                                muscle_group=MuscleGroupDTO(
+                                    id=mg.muscle_group.id, name=mg.muscle_group.name
+                                ),
+                                role=mg.role,
+                            )
+                            for mg in se.exercise.muscle_groups
+                        ],
                     ),
                     order=se.order,
                     superset_group=se.superset_group,
                     rest_seconds=se.rest_seconds,
                     notes=se.notes,
-                    sets=[self._map_set_to_dto(ss) for ss in se.sets]
-                ) for se in session.exercises
-            ]
+                    sets=[self._map_set_to_dto(ss) for ss in se.sets],
+                )
+                for se in session.exercises
+            ],
         )
-    
+
     def _map_set_to_dto(self, ss: SessionSet) -> SessionSetDTO:
         return SessionSetDTO(
             id=ss.id,
@@ -181,5 +226,5 @@ class SessionService:
             actual_weight_kg=ss.actual_weight_kg,
             weight_reduction_pct=ss.weight_reduction_pct,
             rest_seconds=ss.rest_seconds,
-            performed_at=ss.performed_at
+            performed_at=ss.performed_at,
         )

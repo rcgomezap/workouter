@@ -17,6 +17,7 @@ from app.application.dto.pagination import PaginationInput
 from app.domain.entities.routine import Routine, RoutineExercise, RoutineSet
 from app.domain.exceptions import EntityNotFoundException, ConflictException
 
+
 class RoutineService:
     def __init__(self, uow: UnitOfWork) -> None:
         self.uow = uow
@@ -33,13 +34,13 @@ class RoutineService:
             offset = (pagination.page - 1) * pagination.page_size
             limit = pagination.page_size
             routines = await self.uow.routine_repository.list(offset=offset, limit=limit)
-            total = 100 # In a real app, this would be a separate count query
+            total = 100  # In a real app, this would be a separate count query
             return PaginatedRoutines(
                 items=[self._map_to_dto(r) for r in routines],
                 total=total,
                 page=pagination.page,
                 page_size=pagination.page_size,
-                total_pages=(total + pagination.page_size - 1) // pagination.page_size
+                total_pages=(total + pagination.page_size - 1) // pagination.page_size,
             )
 
     async def create_routine(self, input: CreateRoutineInput) -> RoutineDTO:
@@ -72,7 +73,7 @@ class RoutineService:
             await self.uow.commit()
             return True
 
-    async def add_routine_exercise(self, routine_id: UUID, input: AddRoutineExerciseInput) -> RoutineDTO:
+    async def add_exercise(self, routine_id: UUID, input: AddRoutineExerciseInput) -> RoutineDTO:
         async with self.uow:
             routine = await self.uow.routine_repository.get_by_id(routine_id)
             if not routine:
@@ -80,15 +81,21 @@ class RoutineService:
             exercise = await self.uow.exercise_repository.get_by_id(input.exercise_id)
             if not exercise:
                 raise EntityNotFoundException("Exercise", input.exercise_id)
-            
+
             routine_exercise = RoutineExercise(
                 exercise=exercise,
                 order=input.order,
                 superset_group=input.superset_group,
                 rest_seconds=input.rest_seconds,
-                notes=input.notes
+                notes=input.notes,
             )
+            # Use UUID for temporary IDs to ensure they are unique and can be tracked
+            import uuid
+
+            routine_set = RoutineSet(id=uuid.uuid4(), set_number=1, target_reps_max=10)
+            routine_exercise.sets = [routine_set]
             routine.exercises.append(routine_exercise)
+
             await self.uow.routine_repository.update(routine)
             await self.uow.commit()
             return self._map_to_dto(routine)
@@ -110,10 +117,13 @@ class RoutineService:
                         equipment=re.exercise.equipment,
                         muscle_groups=[
                             ExerciseMuscleGroupDTO(
-                                muscle_group=MuscleGroupDTO(id=mg.muscle_group.id, name=mg.muscle_group.name),
-                                role=mg.role
-                            ) for mg in re.exercise.muscle_groups
-                        ]
+                                muscle_group=MuscleGroupDTO(
+                                    id=mg.muscle_group.id, name=mg.muscle_group.name
+                                ),
+                                role=mg.role,
+                            )
+                            for mg in re.exercise.muscle_groups
+                        ],
                     ),
                     order=re.order,
                     superset_group=re.superset_group,
@@ -129,9 +139,11 @@ class RoutineService:
                             target_rir=rs.target_rir,
                             target_weight_kg=rs.target_weight_kg,
                             weight_reduction_pct=rs.weight_reduction_pct,
-                            rest_seconds=rs.rest_seconds
-                        ) for rs in re.sets
-                    ]
-                ) for re in routine.exercises
-            ]
+                            rest_seconds=rs.rest_seconds,
+                        )
+                        for rs in re.sets
+                    ],
+                )
+                for re in routine.exercises
+            ],
         )

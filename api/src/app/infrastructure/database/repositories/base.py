@@ -29,7 +29,7 @@ class SQLAlchemyBaseRepository(Generic[T, M], BaseRepository[T]):
         model_obj = self._to_model(entity)
         self._session.add(model_obj)
         # Flush to get the ID and other generated fields if needed
-        # But we usually commit at UoW level. 
+        # But we usually commit at UoW level.
         # For now, let's assume we want the updated entity back.
         await self._session.flush()
         await self._session.refresh(model_obj)
@@ -40,17 +40,22 @@ class SQLAlchemyBaseRepository(Generic[T, M], BaseRepository[T]):
         # This implementation might vary depending on how the domain entity is used.
         # If the entity is a detached model or a separate DTO-like object.
         # Assuming we need to merge or manually update.
-        model_obj = await self._session.get(self._model_class, entity.id) # type: ignore
+        stmt = select(self._model_class).where(self._model_class.id == entity.id)  # type: ignore
+        # Try to use any specific loading options defined in subclasses if needed
+        # but for now let's just use the basic select
+        result = await self._session.execute(stmt)
+        model_obj = result.scalar_one_or_none()
+
         if not model_obj:
-            raise ValueError(f"Entity with id {entity.id} not found") # type: ignore
-        
+            raise ValueError(f"Entity with id {entity.id} not found")  # type: ignore
+
         self._update_model(model_obj, entity)
         await self._session.flush()
         await self._session.refresh(model_obj)
         return self._to_domain(model_obj)
 
     async def delete(self, id: UUID) -> bool:
-        stmt = delete(self._model_class).where(self._model_class.id == id) # type: ignore
+        stmt = delete(self._model_class).where(self._model_class.id == id)  # type: ignore
         result = await self._session.execute(stmt)
         return result.rowcount > 0
 
