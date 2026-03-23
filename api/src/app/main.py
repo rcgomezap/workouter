@@ -3,7 +3,11 @@ from contextlib import asynccontextmanager
 import structlog
 from strawberry.fastapi import GraphQLRouter
 from app.config.loader import load_config as get_config
-from app.infrastructure.database.connection import init_database, close_database, ping_database
+from app.infrastructure.database.connection import (
+    init_database,
+    close_database,
+    ping_database as check_db,
+)
 from app.presentation.graphql.schema import schema
 from app.presentation.graphql.context import Context
 from app.presentation.middleware.auth import AuthMiddleware
@@ -68,7 +72,7 @@ def create_app(engine=None, session_factory=None) -> FastAPI:
 
         # Validate database connection
         logger = structlog.get_logger()
-        if not await ping_database():
+        if not await check_db():
             logger.error("database_connection_failed", url=config.database.url)
             # In production, we might want to exit or raise an error
             # For now, we'll log it and let the app start but it will fail on DB queries
@@ -111,7 +115,7 @@ def create_app(engine=None, session_factory=None) -> FastAPI:
     # Health Check
     @app.get("/health")
     async def health():
-        db_ok = await ping_database()
+        db_ok = await check_db()
         if not db_ok:
             raise HTTPException(status_code=503, detail="Database connection unavailable")
         return {"status": "ok", "database": "ok"}

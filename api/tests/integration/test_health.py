@@ -18,7 +18,8 @@ async def test_health_check_success(client: AsyncClient):
 @pytest.mark.anyio
 async def test_health_check_database_failure(client: AsyncClient):
     """Test health check returns 503 when database connection fails."""
-    with patch("app.main.ping_database", return_value=False):
+    # Patch the function in the module where it is USED/IMPORTED
+    with patch("app.main.check_db", return_value=False):
         response = await client.get("/health")
 
         assert response.status_code == 503
