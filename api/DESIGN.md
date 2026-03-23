@@ -14,7 +14,7 @@ A single-user Workout Tracker API built with Python, FastAPI, Strawberry GraphQL
 
 | Layer | Technology | Rationale |
 |---|---|---|
-| Language | Python 3.12+ | Modern typing, performance |
+| Language | Python 3.14+ | Modern typing, performance |
 | Web Framework | FastAPI 0.115+ | Async, OpenAPI, middleware |
 | GraphQL | Strawberry 0.243+ | Code-first, async, FastAPI integration |
 | ORM | SQLAlchemy 2.0+ (async) | Modern async session, type-safe |
@@ -726,7 +726,7 @@ type PaginatedExercises {
 ## 10. Dockerfile
 
 ```dockerfile
-FROM python:3.12-slim AS base
+FROM python:3.14-slim AS base
 
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv

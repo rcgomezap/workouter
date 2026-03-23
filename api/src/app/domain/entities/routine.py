@@ -1,0 +1,31 @@
+from decimal import Decimal
+from pydantic import BaseModel, ConfigDict
+from app.domain.entities.common import TimestampedEntity, BaseEntity
+from app.domain.entities.exercise import Exercise
+from app.domain.enums import SetType
+
+
+class RoutineSet(BaseEntity):
+    set_number: int
+    set_type: SetType = SetType.STANDARD
+    target_reps_min: int | None = None
+    target_reps_max: int | None = None
+    target_rir: int | None = None
+    target_weight_kg: Decimal | None = None
+    weight_reduction_pct: Decimal | None = None
+    rest_seconds: int | None = None
+
+
+class RoutineExercise(BaseEntity):
+    exercise: Exercise
+    order: int
+    superset_group: int | None = None
+    rest_seconds: int | None = None
+    notes: str | None = None
+    sets: list[RoutineSet] = []
+
+
+class Routine(TimestampedEntity):
+    name: str
+    description: str | None = None
+    exercises: list[RoutineExercise] = []

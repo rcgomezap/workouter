@@ -1,0 +1,31 @@
+# Workout Tracker API Configuration
+# Copy to config.yaml and customize.
+
+server:
+  host: "0.0.0.0"                    # Bind address
+  port: 8000                          # Bind port
+  debug: false                        # Enable debug mode (never in production)
+
+database:
+  url: "sqlite+aiosqlite:///./data/workout_tracker.db"  # Any SQLAlchemy async URL
+  echo: false                         # Log SQL statements
+
+auth:
+  api_key: "CHANGE-ME-TO-A-SECURE-KEY"  # Static API key for all requests
+
+logging:
+  level: "INFO"                       # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "json"                      # "json" or "console"
+  file: null                          # Optional log file path; null = stdout only
+
+backup:
+  enabled: true                       # Enable backup system
+  directory: "./backups"              # Local directory for backups
+  scheduled:
+    enabled: false                    # Enable scheduled backups
+    frequency_hours: 24               # Interval in hours
+  max_backups: 10                     # Max number of backup files retained (FIFO rotation)
+
+pagination:
+  default_page_size: 20               # Default items per page
+  max_page_size: 100                  # Maximum allowed items per page
