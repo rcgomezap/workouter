@@ -70,6 +70,34 @@ def create_app(engine=None, session_factory=None) -> FastAPI:
         if connection._engine is None:
             init_database(config)
 
+        # SQLite Auto-Initialization
+        if config.database.url.startswith("sqlite"):
+            from pathlib import Path
+            import subprocess
+
+            # Extract path from URL (handle sqlite+aiosqlite:///path and sqlite:///path)
+            db_path_str = config.database.url.split(":///")[1]
+            db_path = Path(db_path_str)
+
+            if not db_path.exists():
+                logger = structlog.get_logger()
+                logger.info("sqlite_db_not_found", path=str(db_path))
+
+                # Ensure directory exists
+                db_path.parent.mkdir(parents=True, exist_ok=True)
+
+                # Run migrations via alembic
+                try:
+                    logger.info("running_migrations")
+                    # We run this from the project root if possible, or where alembic.ini is.
+                    # Based on AGENTS.md, 'uv run alembic upgrade head' is the command.
+                    subprocess.run(["alembic", "upgrade", "head"], check=True, capture_output=True)
+                    logger.info("migrations_completed")
+                except subprocess.CalledProcessError as e:
+                    logger.error("migration_failed", error=e.stderr.decode())
+                except Exception as e:
+                    logger.error("migration_error", error=str(e))
+
         # Validate database connection
         logger = structlog.get_logger()
         if not await check_db():

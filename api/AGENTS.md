@@ -19,6 +19,7 @@ Workout Tracker API is a backend service for tracking fitness progress, includin
 ## Development Workflow
 
 - Start development server: `uv run uvicorn app.main:create_app --factory --reload`
+- Export GraphQL Schema: `PYTHONPATH=src uv run python src/export_schema.py > schema.graphql`
 - Check logs: Structured JSON logs are output to stdout or configured file.
 - Database: Defaults to `data/workout_tracker.db` (SQLite). Use `sqlite3` or similar for manual inspection.
 - Linting and Formatting: `uv run ruff check .` and `uv run ruff format .`

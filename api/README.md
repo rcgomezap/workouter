@@ -59,6 +59,10 @@ docker-compose up --build
 ## Documentation
 
 - **GraphQL API**: Visit `/graphql` for the interactive playground (when `server.debug` is true).
+- **Export Schema**: To generate a `schema.graphql` file for tools like Postman:
+  ```bash
+  PYTHONPATH=src uv run python src/export_schema.py > schema.graphql
+  ```
 - **REST Health Check**: `GET /health`
 - **OpenAPI/Swagger**: `GET /docs`
 

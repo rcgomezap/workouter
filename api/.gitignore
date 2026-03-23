@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+.env
+
+# Database
+data/
+backups/
+
+# GraphQL
+schema.graphql
+
+# IDEs
+.vscode/
+.idea/
