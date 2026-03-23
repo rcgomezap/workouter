@@ -9,13 +9,14 @@ from app.config.schema import Config
 
 class ConfigError(Exception):
     """Base class for configuration errors."""
+
     pass
 
 
 def load_config(config_path: Optional[str] = None) -> Config:
     """
     Load and validate configuration from a YAML file.
-    
+
     The config path is determined by:
     1. config_path argument
     2. CONFIG_PATH environment variable
@@ -25,7 +26,14 @@ def load_config(config_path: Optional[str] = None) -> Config:
         config_path = os.getenv("CONFIG_PATH", "config.yaml")
 
     path = Path(config_path)
-    
+
+    # If using default 'config.yaml' and not found, try looking one directory up
+    # (handles case where app is run from src/ but config is in project root)
+    if config_path == "config.yaml" and not path.exists():
+        alt_path = Path("..") / "config.yaml"
+        if alt_path.exists():
+            path = alt_path
+
     if not path.exists():
         raise ConfigError(f"Configuration file not found: {path.absolute()}")
 
@@ -50,7 +58,5 @@ def load_config(config_path: Optional[str] = None) -> Config:
             loc = " -> ".join(loc_parts)
             msg = error["msg"]
             error_messages.append(f"{loc}: {msg}")
-        
-        raise ConfigError(
-            "Configuration validation failed:\n" + "\n".join(error_messages)
-        )
+
+        raise ConfigError("Configuration validation failed:\n" + "\n".join(error_messages))
