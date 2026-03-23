@@ -10,13 +10,13 @@ from app.config.loader import load_config as get_config
 import os
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def anyio_backend():
     return "asyncio"
 
 
-@pytest_asyncio.fixture(scope="session")
-async def test_engine():
+@pytest_asyncio.fixture(scope="function")
+async def test_engine(anyio_backend):
     config = get_config()
     # Use memory database
     db_url = "sqlite+aiosqlite:///:memory:"

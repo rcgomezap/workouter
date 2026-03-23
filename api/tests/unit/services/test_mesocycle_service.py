@@ -65,6 +65,7 @@ async def test_list_mesocycles(service, mock_uow):
         Mesocycle(id=uuid4(), name="Meso 2", start_date=date(2026, 2, 1)),
     ]
     mock_uow.mesocycle_repository.list = AsyncMock(return_value=mesos)
+    mock_uow.mesocycle_repository.count_total = AsyncMock(return_value=len(mesos))
 
     # Act
     result = await service.list_mesocycles(pagination)

@@ -145,7 +145,7 @@ async def test_delete_routine_not_found(service, mock_uow):
 
 
 @pytest.mark.asyncio
-async def test_add_routine_exercise_success(service, mock_uow):
+async def test_add_exercise_success(service, mock_uow):
     # Arrange
     routine_id = uuid4()
     ex_id = uuid4()
@@ -160,7 +160,7 @@ async def test_add_routine_exercise_success(service, mock_uow):
     input_data = AddRoutineExerciseInput(exercise_id=ex_id, order=1)
 
     # Act
-    result = await service.add_routine_exercise(routine_id, input_data)
+    result = await service.add_exercise(routine_id, input_data)
 
     # Assert
     assert len(result.exercises) == 1
@@ -169,7 +169,7 @@ async def test_add_routine_exercise_success(service, mock_uow):
 
 
 @pytest.mark.asyncio
-async def test_add_routine_exercise_routine_not_found(service, mock_uow):
+async def test_add_exercise_routine_not_found(service, mock_uow):
     # Arrange
     routine_id = uuid4()
     ex_id = uuid4()
@@ -178,11 +178,11 @@ async def test_add_routine_exercise_routine_not_found(service, mock_uow):
 
     # Act & Assert
     with pytest.raises(EntityNotFoundException):
-        await service.add_routine_exercise(routine_id, input_data)
+        await service.add_exercise(routine_id, input_data)
 
 
 @pytest.mark.asyncio
-async def test_add_routine_exercise_exercise_not_found(service, mock_uow):
+async def test_add_exercise_exercise_not_found(service, mock_uow):
     # Arrange
     routine_id = uuid4()
     ex_id = uuid4()
@@ -193,4 +193,4 @@ async def test_add_routine_exercise_exercise_not_found(service, mock_uow):
 
     # Act & Assert
     with pytest.raises(EntityNotFoundException):
-        await service.add_routine_exercise(routine_id, input_data)
+        await service.add_exercise(routine_id, input_data)
