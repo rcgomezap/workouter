@@ -1,11 +1,15 @@
 import pytest
 from httpx import AsyncClient
 
+
 @pytest.mark.anyio
 async def test_health_check(client: AsyncClient):
     response = await client.get("/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+    data = response.json()
+    assert data["status"] == "ok"
+    assert data["database"] == "ok"
+
 
 @pytest.mark.anyio
 async def test_create_and_query_exercise(client: AsyncClient, auth_headers: dict):
@@ -21,19 +25,13 @@ async def test_create_and_query_exercise(client: AsyncClient, auth_headers: dict
     }
     """
     variables = {
-        "input": {
-            "name": "Bench Press",
-            "description": "Chest exercise",
-            "equipment": "Barbell"
-        }
+        "input": {"name": "Bench Press", "description": "Chest exercise", "equipment": "Barbell"}
     }
-    
+
     response = await client.post(
-        "/graphql",
-        json={"query": mutation, "variables": variables},
-        headers=auth_headers
+        "/graphql", json={"query": mutation, "variables": variables}, headers=auth_headers
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert "errors" not in data
@@ -51,17 +49,16 @@ async def test_create_and_query_exercise(client: AsyncClient, auth_headers: dict
     }
     """
     variables = {"id": exercise_id}
-    
+
     response = await client.post(
-        "/graphql",
-        json={"query": query, "variables": variables},
-        headers=auth_headers
+        "/graphql", json={"query": query, "variables": variables}, headers=auth_headers
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert "errors" not in data
     assert data["data"]["exercise"]["name"] == "Bench Press"
+
 
 @pytest.mark.anyio
 async def test_exercise_query_unauthorized(client: AsyncClient):
