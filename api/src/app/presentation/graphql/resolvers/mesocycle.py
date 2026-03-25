@@ -3,30 +3,27 @@ from uuid import UUID
 from strawberry.types import Info
 from app.presentation.graphql.context import Context
 from app.presentation.graphql.types.mesocycle import (
-    Mesocycle, 
-    MesocycleWeek, 
-    PlannedSession, 
-    PaginatedMesocycles
+    Mesocycle,
+    MesocycleWeek,
+    PlannedSession,
+    PaginatedMesocycles,
 )
-from app.presentation.graphql.types.routine import Routine
 from app.presentation.graphql.types.enums import MesocycleStatus
 from app.presentation.graphql.inputs.pagination import PaginationInput
 from app.application.dto.pagination import PaginationInput as PaginationDTO
 from app.domain.enums import MesocycleStatus as DomainMesocycleStatus
+from app.presentation.graphql.resolvers.routine import map_routine
+
 
 def map_planned_session(ps) -> PlannedSession:
     return PlannedSession(
         id=ps.id,
-        routine=Routine(
-            id=ps.routine.id,
-            name=ps.routine.name,
-            description=ps.routine.description,
-            exercises=[]
-        ) if ps.routine else None,
+        routine=map_routine(ps.routine) if ps.routine else None,
         day_of_week=ps.day_of_week,
         date=ps.date,
-        notes=ps.notes
+        notes=ps.notes,
     )
+
 
 def map_mesocycle_week(w) -> MesocycleWeek:
     return MesocycleWeek(
@@ -35,8 +32,9 @@ def map_mesocycle_week(w) -> MesocycleWeek:
         week_type=w.week_type,
         start_date=w.start_date,
         end_date=w.end_date,
-        planned_sessions=[map_planned_session(ps) for ps in w.planned_sessions]
+        planned_sessions=[map_planned_session(ps) for ps in w.planned_sessions],
     )
+
 
 def map_mesocycle(m) -> Mesocycle:
     return Mesocycle(
@@ -46,21 +44,22 @@ def map_mesocycle(m) -> Mesocycle:
         start_date=m.start_date,
         end_date=m.end_date,
         status=m.status,
-        weeks=[map_mesocycle_week(w) for w in m.weeks]
+        weeks=[map_mesocycle_week(w) for w in m.weeks],
     )
+
 
 @strawberry.type
 class MesocycleQuery:
     @strawberry.field
     async def mesocycles(
-        self, 
-        info: Info[Context, None], 
+        self,
+        info: Info[Context, None],
         pagination: PaginationInput | None = None,
-        status: MesocycleStatus | None = None
+        status: MesocycleStatus | None = None,
     ) -> PaginatedMesocycles:
         p_dto = PaginationDTO(
             page=pagination.page if pagination else 1,
-            page_size=pagination.page_size if pagination else 20
+            page_size=pagination.page_size if pagination else 20,
         )
         domain_status = DomainMesocycleStatus(status.value) if status else None
         result = await info.context.mesocycle_service.list_mesocycles(p_dto, domain_status)
@@ -69,7 +68,7 @@ class MesocycleQuery:
             total=result.total,
             page=result.page,
             page_size=result.page_size,
-            total_pages=result.total_pages
+            total_pages=result.total_pages,
         )
 
     @strawberry.field

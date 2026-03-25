@@ -456,3 +456,94 @@ async def test_auth_middleware(client: AsyncClient):
     # Health check is public (based on middleware code)
     response = await client.get("/health", headers={"Authorization": "Bearer invalid"})
     assert response.status_code == 200
+
+
+@pytest.mark.anyio
+async def test_routine_crud_api(client: AsyncClient, auth_headers: dict):
+    # 1. Create Routine
+    create_mutation = """
+    mutation CreateRoutine($input: CreateRoutineInput!) {
+        createRoutine(input: $input) { id name description }
+    }
+    """
+    variables = {"input": {"name": "Initial Routine", "description": "Desc"}}
+    resp = await client.post(
+        "/graphql",
+        json={"query": create_mutation, "variables": variables},
+        headers=auth_headers,
+    )
+    assert resp.status_code == 200
+    data = resp.json()["data"]["createRoutine"]
+    routine_id = data["id"]
+    assert data["name"] == "Initial Routine"
+
+    # 2. Update Routine
+    update_mutation = """
+    mutation UpdateRoutine($id: UUID!, $input: UpdateRoutineInput!) {
+        updateRoutine(id: $id, input: $input) { id name description }
+    }
+    """
+    variables = {"id": routine_id, "input": {"name": "Updated Routine"}}
+    resp = await client.post(
+        "/graphql",
+        json={"query": update_mutation, "variables": variables},
+        headers=auth_headers,
+    )
+    assert resp.json()["data"]["updateRoutine"]["name"] == "Updated Routine"
+
+    # 3. Delete Routine
+    delete_mutation = "mutation DeleteRoutine($id: UUID!) { deleteRoutine(id: $id) }"
+    resp = await client.post(
+        "/graphql",
+        json={"query": delete_mutation, "variables": {"id": routine_id}},
+        headers=auth_headers,
+    )
+    assert resp.json()["data"]["deleteRoutine"] is True
+
+
+@pytest.mark.anyio
+async def test_mesocycle_crud_api(client: AsyncClient, auth_headers: dict):
+    # 1. Create Mesocycle
+    create_mutation = """
+    mutation CreateMesocycle($input: CreateMesocycleInput!) {
+        createMesocycle(input: $input) { id name status }
+    }
+    """
+    variables = {
+        "input": {
+            "name": "Initial Meso",
+            "startDate": "2026-04-01",
+        }
+    }
+    resp = await client.post(
+        "/graphql",
+        json={"query": create_mutation, "variables": variables},
+        headers=auth_headers,
+    )
+    assert resp.status_code == 200
+    data = resp.json()["data"]["createMesocycle"]
+    meso_id = data["id"]
+    assert data["name"] == "Initial Meso"
+
+    # 2. Update Mesocycle
+    update_mutation = """
+    mutation UpdateMesocycle($id: UUID!, $input: UpdateMesocycleInput!) {
+        updateMesocycle(id: $id, input: $input) { id name status }
+    }
+    """
+    variables = {"id": meso_id, "input": {"name": "Updated Meso"}}
+    resp = await client.post(
+        "/graphql",
+        json={"query": update_mutation, "variables": variables},
+        headers=auth_headers,
+    )
+    assert resp.json()["data"]["updateMesocycle"]["name"] == "Updated Meso"
+
+    # 3. Delete Mesocycle
+    delete_mutation = "mutation DeleteMesocycle($id: UUID!) { deleteMesocycle(id: $id) }"
+    resp = await client.post(
+        "/graphql",
+        json={"query": delete_mutation, "variables": {"id": meso_id}},
+        headers=auth_headers,
+    )
+    assert resp.json()["data"]["deleteMesocycle"] is True
