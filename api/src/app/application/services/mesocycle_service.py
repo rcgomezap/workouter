@@ -114,6 +114,41 @@ class MesocycleService:
             await self.uow.commit()
             return self._map_week_to_dto(week)
 
+    async def update_week(self, id: UUID, input: UpdateMesocycleWeekInput) -> MesocycleWeekDTO:
+        async with self.uow:
+            week = await self.uow.mesocycle_repository.get_week_by_id(id)
+            if not week:
+                raise EntityNotFoundException("MesocycleWeek", id)
+
+            if input.week_number is not None:
+                week.week_number = input.week_number
+            if input.week_type is not None:
+                week.week_type = input.week_type
+            if input.start_date is not None:
+                week.start_date = input.start_date
+            if input.end_date is not None:
+                week.end_date = input.end_date
+
+            # Sync with meso
+            meso = await self.uow.mesocycle_repository.get_by_id(week.mesocycle_id)  # type: ignore
+            if meso:
+                for i, w in enumerate(meso.weeks):
+                    if w.id == week.id:
+                        meso.weeks[i] = week
+                        break
+                await self.uow.mesocycle_repository.update(meso)
+
+            await self.uow.commit()
+            return self._map_week_to_dto(week)
+
+    async def remove_week(self, id: UUID) -> bool:
+        async with self.uow:
+            success = await self.uow.mesocycle_repository.delete_week(id)
+            if not success:
+                raise EntityNotFoundException("MesocycleWeek", id)
+            await self.uow.commit()
+            return True
+
     async def add_planned_session(
         self, mesocycle_week_id: UUID, input: AddPlannedSessionInput
     ) -> PlannedSessionDTO:
@@ -160,6 +195,52 @@ class MesocycleService:
                 await self.uow.mesocycle_repository.update(meso)
             await self.uow.commit()
             return self._map_planned_session_to_dto(ps)
+
+    async def update_planned_session(
+        self, id: UUID, input: UpdatePlannedSessionInput
+    ) -> PlannedSessionDTO:
+        async with self.uow:
+            ps = await self.uow.mesocycle_repository.get_planned_session_by_id(id)
+            if not ps:
+                raise EntityNotFoundException("PlannedSession", id)
+
+            if input.routine_id is not None:
+                routine = await self.uow.routine_repository.get_by_id(input.routine_id)
+                if not routine:
+                    raise EntityNotFoundException("Routine", input.routine_id)
+                ps.routine = routine
+            if input.day_of_week is not None:
+                ps.day_of_week = input.day_of_week
+            if input.date is not None:
+                ps.date = input.date
+            if input.notes is not None:
+                ps.notes = input.notes
+
+            # Sync with week/meso
+            week = await self.uow.mesocycle_repository.get_week_by_id(ps.mesocycle_week_id)  # type: ignore
+            if week:
+                for i, s in enumerate(week.planned_sessions):
+                    if s.id == ps.id:
+                        week.planned_sessions[i] = ps
+                        break
+                meso = await self.uow.mesocycle_repository.get_by_id(week.mesocycle_id)  # type: ignore
+                if meso:
+                    for i, w in enumerate(meso.weeks):
+                        if w.id == week.id:
+                            meso.weeks[i] = week
+                            break
+                    await self.uow.mesocycle_repository.update(meso)
+
+            await self.uow.commit()
+            return self._map_planned_session_to_dto(ps)
+
+    async def remove_planned_session(self, id: UUID) -> bool:
+        async with self.uow:
+            success = await self.uow.mesocycle_repository.delete_planned_session(id)
+            if not success:
+                raise EntityNotFoundException("PlannedSession", id)
+            await self.uow.commit()
+            return True
 
     def _map_week_to_dto(self, week: MesocycleWeek) -> MesocycleWeekDTO:
         return MesocycleWeekDTO(

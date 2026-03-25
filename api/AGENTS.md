@@ -26,12 +26,14 @@ Workout Tracker API is a backend service for tracking fitness progress, includin
 
 ## Testing Instructions
 
+- **Optimized Test Command**: `uv run pytest -q --tb=short --disable-warnings` (Recommended to minimize context consumption).
 - Run all tests: `uv run pytest`
 - Run unit tests: `uv run pytest tests/unit`
 - Run integration tests: `uv run pytest tests/integration`
 - Test coverage: `uv run pytest --cov=app --cov-report=term-missing`
 - Note: Integration tests use an in-memory SQLite database.
-- Important: If tests do not pass, ALWAYS debug them individually to avoid filling up the context window.
+- Important: If tests do not pass, ALWAYS debug them individually (e.g., `uv run pytest tests/integration/test_file.py -k test_name -vv`) to avoid filling up the context window.
+- **Subagent Assignment**: For complex or multiple test failures, ALWAYS assign a specialized subagent (e.g., `explore` or `general`) to perform deep-dive debugging. The subagent must return a detailed analysis of the root cause and recommended fixes to the main agent.
 
 ## Code Style
 

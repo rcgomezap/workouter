@@ -42,6 +42,97 @@ class SQLAlchemyRoutineRepository(
         result = await self._session.execute(stmt)
         return result.scalar() or 0
 
+    async def get_exercise_by_id(self, id: UUID) -> RoutineExercise | None:
+        stmt = (
+            select(RoutineExerciseTable)
+            .where(RoutineExerciseTable.id == id)
+            .options(
+                selectinload(RoutineExerciseTable.routine_sets),
+                selectinload(RoutineExerciseTable.exercise),
+            )
+        )
+        result = await self._session.execute(stmt)
+        re_model = result.scalar_one_or_none()
+        if re_model:
+            # We need to map to domain. Since RoutineExercise needs an Exercise domain entity,
+            # we can reuse the logic from _to_domain or just map it here.
+            from app.domain.entities.exercise import Exercise
+
+            exercise = Exercise(
+                id=re_model.exercise.id,
+                name=re_model.exercise.name,
+                description=re_model.exercise.description,
+                equipment=re_model.exercise.equipment,
+                muscle_groups=[],
+            )
+            sets = [
+                RoutineSet(
+                    id=rs.id,
+                    routine_exercise_id=rs.routine_exercise_id,
+                    set_number=rs.set_number,
+                    set_type=rs.set_type,
+                    target_reps_min=rs.target_reps_min,
+                    target_reps_max=rs.target_reps_max,
+                    target_rir=rs.target_rir,
+                    target_weight_kg=rs.target_weight_kg,
+                    weight_reduction_pct=rs.weight_reduction_pct,
+                    rest_seconds=rs.rest_seconds,
+                )
+                for rs in re_model.routine_sets
+            ]
+            re_domain = RoutineExercise(
+                id=re_model.id,
+                routine_id=re_model.routine_id,
+                exercise=exercise,
+                order=re_model.order,
+                superset_group=re_model.superset_group,
+                rest_seconds=re_model.rest_seconds,
+                notes=re_model.notes,
+                sets=sets,
+            )
+            return re_domain
+        return None
+
+    async def delete_exercise(self, id: UUID) -> bool:
+        stmt = select(RoutineExerciseTable).where(RoutineExerciseTable.id == id)
+        result = await self._session.execute(stmt)
+        re_model = result.scalar_one_or_none()
+        if re_model:
+            await self._session.delete(re_model)
+            await self._session.flush()
+            return True
+        return False
+
+    async def get_set_by_id(self, id: UUID) -> RoutineSet | None:
+        stmt = select(RoutineSetTable).where(RoutineSetTable.id == id)
+        result = await self._session.execute(stmt)
+        rs_model = result.scalar_one_or_none()
+        if rs_model:
+            rs_domain = RoutineSet(
+                id=rs_model.id,
+                routine_exercise_id=rs_model.routine_exercise_id,
+                set_number=rs_model.set_number,
+                set_type=rs_model.set_type,
+                target_reps_min=rs_model.target_reps_min,
+                target_reps_max=rs_model.target_reps_max,
+                target_rir=rs_model.target_rir,
+                target_weight_kg=rs_model.target_weight_kg,
+                weight_reduction_pct=rs_model.weight_reduction_pct,
+                rest_seconds=rs_model.rest_seconds,
+            )
+            return rs_domain
+        return None
+
+    async def delete_set(self, id: UUID) -> bool:
+        stmt = select(RoutineSetTable).where(RoutineSetTable.id == id)
+        result = await self._session.execute(stmt)
+        rs_model = result.scalar_one_or_none()
+        if rs_model:
+            await self._session.delete(rs_model)
+            await self._session.flush()
+            return True
+        return False
+
     def _to_domain(self, model_obj: RoutineTable) -> Routine:
         exercises = []
         # Check __dict__ to avoid triggering lazy loads
@@ -53,6 +144,7 @@ class SQLAlchemyRoutineRepository(
                         sets.append(
                             RoutineSet(
                                 id=rs_model.id,
+                                routine_exercise_id=rs_model.routine_exercise_id,
                                 set_number=rs_model.set_number,
                                 set_type=rs_model.set_type,
                                 target_reps_min=rs_model.target_reps_min,
@@ -88,6 +180,7 @@ class SQLAlchemyRoutineRepository(
                 exercises.append(
                     RoutineExercise(
                         id=re_model.id,
+                        routine_id=re_model.routine_id,
                         exercise=exercise,
                         order=re_model.order,
                         superset_group=re_model.superset_group,

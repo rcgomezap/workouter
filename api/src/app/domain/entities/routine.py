@@ -1,3 +1,4 @@
+from uuid import UUID
 from decimal import Decimal
 from pydantic import BaseModel, ConfigDict
 from app.domain.entities.common import TimestampedEntity, BaseEntity
@@ -6,6 +7,7 @@ from app.domain.enums import SetType
 
 
 class RoutineSet(BaseEntity):
+    routine_exercise_id: UUID | None = None
     set_number: int
     set_type: SetType = SetType.STANDARD
     target_reps_min: int | None = None
@@ -17,6 +19,7 @@ class RoutineSet(BaseEntity):
 
 
 class RoutineExercise(BaseEntity):
+    routine_id: UUID | None = None
     exercise: Exercise
     order: int
     superset_group: int | None = None

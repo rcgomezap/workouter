@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Sequence
 from uuid import UUID
 from sqlalchemy import select, func
@@ -123,6 +124,26 @@ class SQLAlchemyMesocycleRepository(
         stmt = select(func.count()).select_from(MesocycleTable)
         result = await self._session.execute(stmt)
         return result.scalar() or 0
+
+    async def delete_week(self, week_id: UUID) -> bool:
+        stmt = select(MesocycleWeekTable).where(MesocycleWeekTable.id == week_id)
+        result = await self._session.execute(stmt)
+        model_obj = result.scalar_one_or_none()
+        if model_obj:
+            await self._session.delete(model_obj)
+            await self._session.flush()
+            return True
+        return False
+
+    async def delete_planned_session(self, ps_id: UUID) -> bool:
+        stmt = select(PlannedSessionTable).where(PlannedSessionTable.id == ps_id)
+        result = await self._session.execute(stmt)
+        model_obj = result.scalar_one_or_none()
+        if model_obj:
+            await self._session.delete(model_obj)
+            await self._session.flush()
+            return True
+        return False
 
     async def update(self, entity: Mesocycle) -> Mesocycle:
         stmt = (

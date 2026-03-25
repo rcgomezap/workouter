@@ -17,3 +17,6 @@ schema.graphql
 
 # Configuration
 config.yaml
+
+# Test result
+.coverage
