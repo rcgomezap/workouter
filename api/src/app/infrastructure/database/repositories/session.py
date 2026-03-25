@@ -48,6 +48,7 @@ class SQLAlchemySessionRepository(
         self,
         status: SessionStatus | None = None,
         mesocycle_id: UUID | None = None,
+        exercise_id: UUID | None = None,
         date_from: date | None = None,
         date_to: date | None = None,
         offset: int = 0,
@@ -65,6 +66,10 @@ class SQLAlchemySessionRepository(
             filters.append(SessionTable.status == status)
         if mesocycle_id:
             filters.append(SessionTable.mesocycle_id == mesocycle_id)
+        if exercise_id:
+            stmt = stmt.join(SessionExerciseTable).where(
+                SessionExerciseTable.exercise_id == exercise_id
+            )
         if date_from:
             filters.append(cast(SessionTable.started_at, Date) >= date_from)
         if date_to:
@@ -80,16 +85,21 @@ class SQLAlchemySessionRepository(
         self,
         status: SessionStatus | None = None,
         mesocycle_id: UUID | None = None,
+        exercise_id: UUID | None = None,
         date_from: date | None = None,
         date_to: date | None = None,
     ) -> int:
-        stmt = select(func.count()).select_from(SessionTable)
+        stmt = select(func.count(SessionTable.id)).select_from(SessionTable)
 
         filters = []
         if status:
             filters.append(SessionTable.status == status)
         if mesocycle_id:
             filters.append(SessionTable.mesocycle_id == mesocycle_id)
+        if exercise_id:
+            stmt = stmt.join(SessionExerciseTable).where(
+                SessionExerciseTable.exercise_id == exercise_id
+            )
         if date_from:
             filters.append(cast(SessionTable.started_at, Date) >= date_from)
         if date_to:

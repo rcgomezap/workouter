@@ -162,6 +162,232 @@ async def test_mesocycle_lifecycle_api(client: AsyncClient, auth_headers: dict):
 
 
 @pytest.mark.anyio
+async def test_insights_api(client: AsyncClient, auth_headers: dict):
+    # Setup: Create Exercise, Routine, Mesocycle, Week, PlannedSession, Session, Log Set
+    # 1. Create Exercise
+    resp = await client.post(
+        "/graphql",
+        json={"query": 'mutation { createExercise(input: {name: "Deadlift"}) { id } }'},
+        headers=auth_headers,
+    )
+    ex_id = resp.json()["data"]["createExercise"]["id"]
+
+    # 2. Create Routine
+    resp = await client.post(
+        "/graphql",
+        json={"query": 'mutation { createRoutine(input: {name: "Back Day"}) { id } }'},
+        headers=auth_headers,
+    )
+    routine_id = resp.json()["data"]["createRoutine"]["id"]
+
+    # Add Exercise to Routine
+    await client.post(
+        "/graphql",
+        json={
+            "query": "mutation AddEx($rid: UUID!, $eid: UUID!) { addRoutineExercise(routineId: $rid, input: {exerciseId: $eid, order: 1}) { id } }",
+            "variables": {"rid": routine_id, "eid": ex_id},
+        },
+        headers=auth_headers,
+    )
+
+    # 3. Create Mesocycle
+    resp = await client.post(
+        "/graphql",
+        json={
+            "query": 'mutation { createMesocycle(input: {name: "Insight Meso", startDate: "2026-04-01"}) { id } }'
+        },
+        headers=auth_headers,
+    )
+    meso_id = resp.json()["data"]["createMesocycle"]["id"]
+
+    # 4. Add Week & Planned Session
+    resp = await client.post(
+        "/graphql",
+        json={
+            "query": 'mutation AddW($mid: UUID!) { addMesocycleWeek(mesocycleId: $mid, input: {weekNumber: 1, weekType: TRAINING, startDate: "2026-04-01", endDate: "2026-04-07"}) { id } }',
+            "variables": {"mid": meso_id},
+        },
+        headers=auth_headers,
+    )
+    week_id = resp.json()["data"]["addMesocycleWeek"]["id"]
+
+    resp = await client.post(
+        "/graphql",
+        json={
+            "query": "mutation AddPS($wid: UUID!, $rid: UUID!) { addPlannedSession(mesocycleWeekId: $wid, input: {routineId: $rid, dayOfWeek: 1}) { id } }",
+            "variables": {"wid": week_id, "rid": routine_id},
+        },
+        headers=auth_headers,
+    )
+    ps_id = resp.json()["data"]["addPlannedSession"]["id"]
+
+    # 5. Create & Complete Session
+    resp = await client.post(
+        "/graphql",
+        json={
+            "query": "mutation CreateS($psid: UUID!) { createSession(input: {plannedSessionId: $psid}) { id exercises { sets { id } } } }",
+            "variables": {"psid": ps_id},
+        },
+        headers=auth_headers,
+    )
+    session_data = resp.json()["data"]["createSession"]
+    session_id = session_data["id"]
+    set_id = session_data["exercises"][0]["sets"][0]["id"]
+
+    await client.post(
+        "/graphql",
+        json={"query": 'mutation { startSession(id: "%s") { id } }' % session_id},
+        headers=auth_headers,
+    )
+
+    await client.post(
+        "/graphql",
+        json={
+            "query": "mutation Log($sid: UUID!) { logSetResult(setId: $sid, input: {actualReps: 5, actualWeightKg: 140.0}) { id } }",
+            "variables": {"sid": set_id},
+        },
+        headers=auth_headers,
+    )
+
+    await client.post(
+        "/graphql",
+        json={"query": 'mutation { completeSession(id: "%s") { id } }' % session_id},
+        headers=auth_headers,
+    )
+
+    # 6. Query Insights
+    # Volume Insight
+    vol_query = """
+    query GetVolume($mid: UUID!) {
+        mesocycleVolumeInsight(mesocycleId: $mid) {
+            mesocycleId
+            totalSets
+            weeklyVolumes { weekNumber setCount }
+        }
+    }
+    """
+    resp = await client.post(
+        "/graphql", json={"query": vol_query, "variables": {"mid": meso_id}}, headers=auth_headers
+    )
+    assert resp.status_code == 200
+    vol_data = resp.json()["data"]["mesocycleVolumeInsight"]
+    assert vol_data["totalSets"] >= 1
+
+    # Progressive Overload Insight
+    po_query = """
+    query GetPO($mid: UUID!, $eid: UUID!) {
+        progressiveOverloadInsight(mesocycleId: $mid, exerciseId: $eid) {
+            exerciseId
+            weeklyProgress { weekNumber maxWeight avgReps }
+        }
+    }
+    """
+    resp = await client.post(
+        "/graphql",
+        json={"query": po_query, "variables": {"mid": meso_id, "eid": ex_id}},
+        headers=auth_headers,
+    )
+    assert resp.status_code == 200
+    po_data = resp.json()["data"]["progressiveOverloadInsight"]
+    assert len(po_data["weeklyProgress"]) >= 1
+    assert float(po_data["weeklyProgress"][0]["maxWeight"]) == 140.0
+
+    # Exercise History
+    hist_query = """
+    query GetHist($eid: UUID!) {
+        exerciseHistory(exerciseId: $eid) {
+            items { id status }
+        }
+    }
+    """
+    resp = await client.post(
+        "/graphql", json={"query": hist_query, "variables": {"eid": ex_id}}, headers=auth_headers
+    )
+    assert resp.status_code == 200
+    hist_items = resp.json()["data"]["exerciseHistory"]["items"]
+    assert any(h["id"] == session_id for h in hist_items)
+
+
+@pytest.mark.anyio
+async def test_calendar_api(client: AsyncClient, auth_headers: dict):
+    # Query calendar range
+    query = """
+    query GetCalendar($start: Date!, $end: Date!) {
+        calendarRange(startDate: $start, endDate: $end) {
+            date
+            isRestDay
+            plannedSession { id }
+            session { id }
+        }
+    }
+    """
+    variables = {"start": "2026-04-01", "end": "2026-04-07"}
+    resp = await client.post(
+        "/graphql", json={"query": query, "variables": variables}, headers=auth_headers
+    )
+    assert resp.status_code == 200
+    days = resp.json()["data"]["calendarRange"]
+    assert len(days) == 7
+
+
+@pytest.mark.anyio
+async def test_backup_api(client: AsyncClient, auth_headers: dict):
+    mutation = """
+    mutation {
+        triggerBackup {
+            success
+            filename
+        }
+    }
+    """
+    resp = await client.post("/graphql", json={"query": mutation}, headers=auth_headers)
+    assert resp.status_code == 200
+    data = resp.json()["data"]["triggerBackup"]
+    assert data["success"] is True
+    assert data["filename"] is not None
+
+
+@pytest.mark.anyio
+async def test_crud_mutations(client: AsyncClient, auth_headers: dict):
+    # 1. Create and Update Exercise
+    resp = await client.post(
+        "/graphql",
+        json={"query": 'mutation { createExercise(input: {name: "Old Name"}) { id } }'},
+        headers=auth_headers,
+    )
+    ex_id = resp.json()["data"]["createExercise"]["id"]
+
+    update_mutation = """
+    mutation UpdateEx($id: UUID!, $input: UpdateExerciseInput!) {
+        updateExercise(id: $id, input: $input) { id name }
+    }
+    """
+    resp = await client.post(
+        "/graphql",
+        json={"query": update_mutation, "variables": {"id": ex_id, "input": {"name": "New Name"}}},
+        headers=auth_headers,
+    )
+    assert resp.json()["data"]["updateExercise"]["name"] == "New Name"
+
+    # 2. Delete Exercise
+    delete_mutation = "mutation DeleteEx($id: UUID!) { deleteExercise(id: $id) }"
+    resp = await client.post(
+        "/graphql",
+        json={"query": delete_mutation, "variables": {"id": ex_id}},
+        headers=auth_headers,
+    )
+    assert resp.json()["data"]["deleteExercise"] is True
+
+    # Verify deleted
+    resp = await client.post(
+        "/graphql", json={"query": '{ exercise(id: "%s") { id } }' % ex_id}, headers=auth_headers
+    )
+    # Depending on implementation, it might return null or error.
+    # Usually clean architecture returns 404/Error if not found.
+    assert "errors" in resp.json() or resp.json()["data"]["exercise"] is None
+
+
+@pytest.mark.anyio
 async def test_bodyweight_api(client: AsyncClient, auth_headers: dict):
 
     # 1. Log Bodyweight

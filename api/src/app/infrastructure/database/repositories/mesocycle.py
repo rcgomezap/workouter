@@ -81,6 +81,24 @@ class SQLAlchemyMesocycleRepository(
             return self._to_planned_session_domain(model_obj)
         return None
 
+    async def get_planned_sessions_by_date_range(
+        self, start_date: date, end_date: date
+    ) -> Sequence[PlannedSession]:
+        stmt = (
+            select(PlannedSessionTable)
+            .where(PlannedSessionTable.date >= start_date, PlannedSessionTable.date <= end_date)
+            .options(
+                selectinload(PlannedSessionTable.routine)
+                .selectinload(RoutineTable.routine_exercises)
+                .selectinload(RoutineExerciseTable.routine_sets),
+                selectinload(PlannedSessionTable.routine)
+                .selectinload(RoutineTable.routine_exercises)
+                .selectinload(RoutineExerciseTable.exercise),
+            )
+        )
+        result = await self._session.execute(stmt)
+        return [self._to_planned_session_domain(row) for row in result.scalars().all()]
+
     async def list_by_status(
         self, status: MesocycleStatus, offset: int = 0, limit: int = 20
     ) -> Sequence[Mesocycle]:
