@@ -20,6 +20,18 @@ class SessionSet(BaseEntity):
     rest_seconds: int | None = None
     performed_at: datetime | None = None
 
+    def calculate_epley_1rm(self) -> Decimal | None:
+        """Calculate estimated 1RM using Epley formula: weight * (1 + reps / 30.0)"""
+        if (
+            self.actual_weight_kg is not None
+            and self.actual_reps is not None
+            and self.actual_reps > 0
+        ):
+            return self.actual_weight_kg * (
+                Decimal("1") + Decimal(str(self.actual_reps)) / Decimal("30")
+            )
+        return None
+
 
 class SessionExercise(BaseEntity):
     exercise: Exercise

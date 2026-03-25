@@ -8,8 +8,11 @@ from app.presentation.graphql.types.insight import (
     MuscleGroupVolume,
     ProgressiveOverloadInsight,
     WeeklyExerciseProgress,
+    IntensityInsight,
+    WeeklyIntensity,
 )
 from app.presentation.graphql.types.session import PaginatedSessions, Session
+from app.presentation.graphql.types.enums import SessionStatus as SessionStatusType
 from app.presentation.graphql.inputs.pagination import PaginationInput
 from app.application.dto.pagination import PaginationInput as PaginationDTO
 
@@ -69,6 +72,20 @@ class InsightQuery:
         return map_progressive_overload_insight(p)
 
     @strawberry.field
+    async def mesocycle_intensity_insight(
+        self, info: Info[Context, None], mesocycle_id: UUID
+    ) -> IntensityInsight:
+        i = await info.context.insight_service.get_intensity_insight(mesocycle_id)
+        return IntensityInsight(
+            mesocycle_id=i.mesocycle_id,
+            weekly_intensities=[
+                WeeklyIntensity(week_number=wi.week_number, avg_rir=wi.avg_rir)
+                for wi in i.weekly_intensities
+            ],
+            overall_avg_rir=i.overall_avg_rir,
+        )
+
+    @strawberry.field
     async def exercise_history(
         self,
         info: Info[Context, None],
@@ -87,7 +104,7 @@ class InsightQuery:
                     planned_session_id=s.planned_session_id,
                     mesocycle_id=s.mesocycle_id,
                     routine_id=s.routine_id,
-                    status=s.status,
+                    status=SessionStatusType(s.status.value),
                     started_at=s.started_at,
                     completed_at=s.completed_at,
                     notes=s.notes,

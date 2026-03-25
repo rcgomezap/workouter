@@ -33,7 +33,7 @@ class Mutation(
     ExerciseMutation, 
     RoutineMutation, 
     MesocycleMutation, 
-    SessionMutation, 
+SessionMutation, 
     BodyweightMutation, 
     BackupMutation
 ):

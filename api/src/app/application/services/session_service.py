@@ -64,10 +64,20 @@ class SessionService:
                     input.planned_session_id
                 )
                 print(f"DEBUG: Fetched planned_session={planned_session}")
-                if planned_session and planned_session.routine:
-                    routine_id = planned_session.routine.id
-                    print(f"DEBUG: Found routine_id={routine_id} in planned_session")
-                    session.routine_id = routine_id
+                if planned_session:
+                    if planned_session.routine:
+                        routine_id = planned_session.routine.id
+                        print(f"DEBUG: Found routine_id={routine_id} in planned_session")
+                        session.routine_id = routine_id
+
+                    # Ensure mesocycle_id is set from the week if missing
+                    if not session.mesocycle_id:
+                        week = await self.uow.mesocycle_repository.get_week_by_id(
+                            planned_session.mesocycle_week_id
+                        )
+                        if week:
+                            session.mesocycle_id = week.mesocycle_id
+                            print(f"DEBUG: Found mesocycle_id={session.mesocycle_id} from week")
 
             # Business Rule 1: Session creation from routine
             if routine_id:

@@ -59,6 +59,14 @@ class SQLAlchemySessionRepository(
             .offset(offset)
             .limit(limit)
             .order_by(SessionTable.started_at.desc())
+            .options(
+                selectinload(SessionTable.session_exercises).selectinload(
+                    SessionExerciseTable.session_sets
+                ),
+                selectinload(SessionTable.session_exercises)
+                .selectinload(SessionExerciseTable.exercise)
+                .selectinload(ExerciseTable.muscle_groups),
+            )
         )
 
         filters = []
@@ -67,7 +75,8 @@ class SQLAlchemySessionRepository(
         if mesocycle_id:
             filters.append(SessionTable.mesocycle_id == mesocycle_id)
         if exercise_id:
-            stmt = stmt.join(SessionExerciseTable).where(
+            # We must join SessionExerciseTable to filter by exercise_id
+            stmt = stmt.join(SessionTable.session_exercises).where(
                 SessionExerciseTable.exercise_id == exercise_id
             )
         if date_from:
@@ -79,7 +88,8 @@ class SQLAlchemySessionRepository(
             stmt = stmt.where(and_(*filters))
 
         result = await self._session.execute(stmt)
-        return [self._to_domain(row) for row in result.scalars().all()]
+        # Use .unique() to handle the join results correctly with selectinload
+        return [self._to_domain(row) for row in result.scalars().unique().all()]
 
     async def count_by_filters(
         self,
@@ -97,7 +107,8 @@ class SQLAlchemySessionRepository(
         if mesocycle_id:
             filters.append(SessionTable.mesocycle_id == mesocycle_id)
         if exercise_id:
-            stmt = stmt.join(SessionExerciseTable).where(
+            # We must join SessionExerciseTable to filter by exercise_id
+            stmt = stmt.join(SessionTable.session_exercises).where(
                 SessionExerciseTable.exercise_id == exercise_id
             )
         if date_from:
@@ -291,5 +302,6 @@ class SQLAlchemySessionRepository(
         model_obj.actual_weight_kg = session_set.actual_weight_kg
         model_obj.performed_at = session_set.performed_at
 
+        # Ensure changes are flushed to the database
         await self._session.flush()
         return self._to_set_domain(model_obj)
