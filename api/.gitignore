@@ -13,5 +13,7 @@ backups/
 schema.graphql
 
 # IDEs
-.vscode/
 .idea/
+
+# Configuration
+config.yaml
