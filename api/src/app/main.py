@@ -89,10 +89,27 @@ def create_app(engine=None, session_factory=None) -> FastAPI:
                 # Run migrations via alembic
                 try:
                     logger.info("running_migrations")
-                    # We run this from the project root if possible, or where alembic.ini is.
-                    # Based on AGENTS.md, 'uv run alembic upgrade head' is the command.
-                    subprocess.run(["alembic", "upgrade", "head"], check=True, capture_output=True)
+                    import sys
+                    import os
+
+                    # Try to find alembic in the same directory as python or in PATH
+                    alembic_cmd = "alembic"
+                    python_dir = os.path.dirname(sys.executable)
+                    potential_alembic = os.path.join(python_dir, "alembic")
+                    if os.path.exists(potential_alembic):
+                        alembic_cmd = potential_alembic
+
+                    subprocess.run(
+                        [alembic_cmd, "upgrade", "head"], check=True, capture_output=True
+                    )
                     logger.info("migrations_completed")
+
+                    # Seed initial data
+                    from app.infrastructure.seed import seed_muscle_groups
+
+                    logger.info("seeding_initial_data")
+                    await seed_muscle_groups(connection.get_session_factory())
+                    logger.info("seeding_completed")
                 except subprocess.CalledProcessError as e:
                     logger.error("migration_failed", error=e.stderr.decode())
                 except Exception as e:

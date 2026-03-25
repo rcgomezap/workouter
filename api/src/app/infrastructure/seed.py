@@ -38,10 +38,11 @@ MUSCLE_GROUPS = [
 ]
 
 
-async def seed_muscle_groups():
-    config = get_config()
-    init_database(config)
-    session_factory = get_session_factory()
+async def seed_muscle_groups(session_factory=None):
+    if session_factory is None:
+        config = get_config()
+        init_database(config)
+        session_factory = get_session_factory()
 
     async with session_factory() as session:
         for name in MUSCLE_GROUPS:
@@ -52,7 +53,7 @@ async def seed_muscle_groups():
                 session.add(mg)
 
         await session.commit()
-        print("Muscle groups seeded successfully.")
+        # print("Muscle groups seeded successfully.")
 
 
 if __name__ == "__main__":
