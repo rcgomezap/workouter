@@ -1,7 +1,7 @@
-from datetime import date
+from datetime import date, datetime, time
 from typing import Sequence
 from uuid import UUID
-from sqlalchemy import select, func, and_, cast, Date
+from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from app.domain.entities.session import Session, SessionSet, SessionExercise
@@ -80,9 +80,11 @@ class SQLAlchemySessionRepository(
                 SessionExerciseTable.exercise_id == exercise_id
             )
         if date_from:
-            filters.append(cast(SessionTable.started_at, Date) >= date_from)
+            dt_from = datetime.combine(date_from, time.min)
+            filters.append(SessionTable.started_at >= dt_from)
         if date_to:
-            filters.append(cast(SessionTable.started_at, Date) <= date_to)
+            dt_to = datetime.combine(date_to, time.max)
+            filters.append(SessionTable.started_at <= dt_to)
 
         if filters:
             stmt = stmt.where(and_(*filters))
@@ -112,9 +114,11 @@ class SQLAlchemySessionRepository(
                 SessionExerciseTable.exercise_id == exercise_id
             )
         if date_from:
-            filters.append(cast(SessionTable.started_at, Date) >= date_from)
+            dt_from = datetime.combine(date_from, time.min)
+            filters.append(SessionTable.started_at >= dt_from)
         if date_to:
-            filters.append(cast(SessionTable.started_at, Date) <= date_to)
+            dt_to = datetime.combine(date_to, time.max)
+            filters.append(SessionTable.started_at <= dt_to)
 
         if filters:
             stmt = stmt.where(and_(*filters))
@@ -123,10 +127,12 @@ class SQLAlchemySessionRepository(
         return result.scalar() or 0
 
     async def get_by_date_range(self, start_date: date, end_date: date) -> Sequence[Session]:
+        dt_start = datetime.combine(start_date, time.min)
+        dt_end = datetime.combine(end_date, time.max)
         stmt = select(SessionTable).where(
             and_(
-                cast(SessionTable.started_at, Date) >= start_date,
-                cast(SessionTable.started_at, Date) <= end_date,
+                SessionTable.started_at >= dt_start,
+                SessionTable.started_at <= dt_end,
             )
         )
         result = await self._session.execute(stmt)

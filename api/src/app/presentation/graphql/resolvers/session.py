@@ -74,8 +74,14 @@ class SessionQuery:
             page=pagination.page if pagination else 1,
             page_size=pagination.page_size if pagination else 20,
         )
-        # SessionService.list_sessions currently only takes pagination
-        result = await info.context.session_service.list_sessions(p_dto)
+
+        result = await info.context.session_service.list_sessions(
+            pagination=p_dto,
+            status=status,
+            mesocycle_id=mesocycle_id,
+            date_from=date_from,
+            date_to=date_to,
+        )
         return PaginatedSessions(
             items=[map_session(s) for s in result.items],
             total=result.total,

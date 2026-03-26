@@ -1,5 +1,5 @@
 from uuid import UUID
-from datetime import UTC, datetime
+from datetime import UTC, datetime, date
 from app.application.interfaces.unit_of_work import UnitOfWork
 from app.application.dto.session import (
     SessionDTO,
@@ -32,12 +32,31 @@ class SessionService:
                 raise EntityNotFoundException("Session", id)
             return self._map_to_dto(session)
 
-    async def list_sessions(self, pagination: PaginationInput) -> PaginatedSessions:
+    async def list_sessions(
+        self,
+        pagination: PaginationInput,
+        status: SessionStatus | None = None,
+        mesocycle_id: UUID | None = None,
+        date_from: date | None = None,
+        date_to: date | None = None,
+    ) -> PaginatedSessions:
         async with self.uow:
             offset = (pagination.page - 1) * pagination.page_size
             limit = pagination.page_size
-            sessions = await self.uow.session_repository.list(offset=offset, limit=limit)
-            total = await self.uow.session_repository.count()
+            sessions = await self.uow.session_repository.list_by_filters(
+                status=status,
+                mesocycle_id=mesocycle_id,
+                date_from=date_from,
+                date_to=date_to,
+                offset=offset,
+                limit=limit,
+            )
+            total = await self.uow.session_repository.count_by_filters(
+                status=status,
+                mesocycle_id=mesocycle_id,
+                date_from=date_from,
+                date_to=date_to,
+            )
             return PaginatedSessions(
                 items=[self._map_to_dto(s) for s in sessions],
                 total=total,

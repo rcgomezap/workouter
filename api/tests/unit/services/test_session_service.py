@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
 from decimal import Decimal
+from datetime import date, timedelta
 
 from app.application.services.session_service import SessionService
 from app.application.dto.session import CreateSessionInput, LogSetResultInput
@@ -59,8 +60,8 @@ async def test_list_sessions(service, mock_uow):
     # Arrange
     pagination = PaginationInput(page=1, page_size=10)
     sessions = [Session(id=uuid4()), Session(id=uuid4())]
-    mock_uow.session_repository.list = AsyncMock(return_value=sessions)
-    mock_uow.session_repository.count = AsyncMock(return_value=2)
+    mock_uow.session_repository.list_by_filters = AsyncMock(return_value=sessions)
+    mock_uow.session_repository.count_by_filters = AsyncMock(return_value=2)
 
     # Act
     result = await service.list_sessions(pagination)
@@ -69,8 +70,118 @@ async def test_list_sessions(service, mock_uow):
     assert len(result.items) == 2
     assert result.total == 2
     assert result.total_pages == 1
-    mock_uow.session_repository.list.assert_called_once_with(offset=0, limit=10)
-    mock_uow.session_repository.count.assert_called_once()
+    mock_uow.session_repository.list_by_filters.assert_called_once_with(
+        status=None,
+        mesocycle_id=None,
+        date_from=None,
+        date_to=None,
+        offset=0,
+        limit=10,
+    )
+    mock_uow.session_repository.count_by_filters.assert_called_once_with(
+        status=None,
+        mesocycle_id=None,
+        date_from=None,
+        date_to=None,
+    )
+
+
+@pytest.mark.asyncio
+async def test_list_sessions_filter_by_status(service, mock_uow):
+    # Arrange
+    pagination = PaginationInput(page=1, page_size=10)
+    mock_uow.session_repository.list_by_filters = AsyncMock(return_value=[])
+    mock_uow.session_repository.count_by_filters = AsyncMock(return_value=0)
+
+    # Act
+    await service.list_sessions(pagination, status=SessionStatus.COMPLETED)
+
+    # Assert
+    mock_uow.session_repository.list_by_filters.assert_called_once_with(
+        status=SessionStatus.COMPLETED,
+        mesocycle_id=None,
+        date_from=None,
+        date_to=None,
+        offset=0,
+        limit=10,
+    )
+    mock_uow.session_repository.count_by_filters.assert_called_once_with(
+        status=SessionStatus.COMPLETED,
+        mesocycle_id=None,
+        date_from=None,
+        date_to=None,
+    )
+
+
+@pytest.mark.asyncio
+async def test_list_sessions_filter_by_mesocycle(service, mock_uow):
+    # Arrange
+    pagination = PaginationInput(page=1, page_size=10)
+    mesocycle_id = uuid4()
+    mock_uow.session_repository.list_by_filters = AsyncMock(return_value=[])
+    mock_uow.session_repository.count_by_filters = AsyncMock(return_value=0)
+
+    # Act
+    await service.list_sessions(pagination, mesocycle_id=mesocycle_id)
+
+    # Assert
+    mock_uow.session_repository.list_by_filters.assert_called_once_with(
+        status=None,
+        mesocycle_id=mesocycle_id,
+        date_from=None,
+        date_to=None,
+        offset=0,
+        limit=10,
+    )
+
+
+@pytest.mark.asyncio
+async def test_list_sessions_filter_by_date_range(service, mock_uow):
+    # Arrange
+    pagination = PaginationInput(page=1, page_size=10)
+    date_from = date.today() - timedelta(days=7)
+    date_to = date.today()
+    mock_uow.session_repository.list_by_filters = AsyncMock(return_value=[])
+    mock_uow.session_repository.count_by_filters = AsyncMock(return_value=0)
+
+    # Act
+    await service.list_sessions(pagination, date_from=date_from, date_to=date_to)
+
+    # Assert
+    mock_uow.session_repository.list_by_filters.assert_called_once_with(
+        status=None,
+        mesocycle_id=None,
+        date_from=date_from,
+        date_to=date_to,
+        offset=0,
+        limit=10,
+    )
+
+
+@pytest.mark.asyncio
+async def test_list_sessions_combined_filters(service, mock_uow):
+    # Arrange
+    pagination = PaginationInput(page=1, page_size=10)
+    status = SessionStatus.COMPLETED
+    mesocycle_id = uuid4()
+    date_from = date.today()
+    mock_uow.session_repository.list_by_filters = AsyncMock(return_value=[])
+    mock_uow.session_repository.count_by_filters = AsyncMock(return_value=0)
+
+    # Act
+    await service.list_sessions(
+        pagination, status=status, mesocycle_id=mesocycle_id, date_from=date_from
+    )
+
+    # Assert
+    mock_uow.session_repository.list_by_filters.assert_called_once_with(
+        status=status,
+        mesocycle_id=mesocycle_id,
+        date_from=date_from,
+        date_to=None,
+        offset=0,
+        limit=10,
+    )
 
 
 @pytest.mark.asyncio
