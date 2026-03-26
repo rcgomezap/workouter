@@ -24,11 +24,8 @@ jobs:
         with:
           enable-cache: true # Speeds up future runs
 
-      - name: Set up Python
-        run: uv python install
-
-      - name: Install dependencies
-        run: uv sync
+      - name: Setup
+        run: make install
 
       - name: Run Tests
         # This calls 'uv run pytest' as defined in your Makefile
