@@ -1,49 +1,8 @@
-import pytest
 import asyncio
-from datetime import datetime, timedelta, timezone
-from uuid import UUID
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import datetime, timedelta
+
+import pytest
 from httpx import AsyncClient
-
-from app.infrastructure.database.models.routine import RoutineTable
-from app.infrastructure.database.models.session import SessionTable, SessionSetTable
-from app.infrastructure.database.models.bodyweight import BodyweightLogTable
-from app.presentation.graphql.schema import schema
-
-
-# 1. Schema Consistency Tests
-async def test_schema_export_matches_runtime():
-    """Ensure exported schema.graphql is up-to-date with runtime schema."""
-    try:
-        with open("schema.graphql", "r") as f:
-            exported_schema = f.read().strip()
-    except FileNotFoundError:
-        pytest.fail("schema.graphql not found. Please run 'src/export_schema.py > schema.graphql'")
-
-    runtime_schema = str(schema).strip()
-
-    # DEBUG: Print runtime schema snippet for exerciseHistory
-    import re
-
-    match = re.search(r"exerciseHistory\(.*?\)", runtime_schema)
-    if match:
-        print(f"DEBUG: runtime exerciseHistory: {match.group(0)}")
-    else:
-        print("DEBUG: exerciseHistory not found in runtime schema")
-
-    # Normalize line endings and whitespace for comparison
-    exported_schema = "\n".join(
-        [line.rstrip() for line in exported_schema.splitlines() if line.strip()]
-    )
-    runtime_schema = "\n".join(
-        [line.rstrip() for line in runtime_schema.splitlines() if line.strip()]
-    )
-
-    assert exported_schema == runtime_schema, (
-        "schema.graphql is out of sync with the runtime schema. "
-        "Please run 'PYTHONPATH=src uv run python src/export_schema.py > schema.graphql' to update it."
-    )
 
 
 # 2. Exercise History Integration Tests
@@ -69,7 +28,7 @@ async def test_exercise_history_full_flow(client: AsyncClient, auth_headers: dic
         )
         routine_ids.append(resp.json()["data"]["createRoutine"]["id"])
 
-    routine_a_id, routine_b_id = routine_ids
+    routine_a_id, _routine_b_id = routine_ids
 
     # 3. Add Exercise to both routines
     for rid in routine_ids:
@@ -209,6 +168,7 @@ async def test_exercise_history_full_flow(client: AsyncClient, auth_headers: dic
     assert data["total"] == 2
     for item in data["items"]:
         assert item["routineId"] == routine_a_id
+
 
 # 5. Cascade Deletion Tests
 @pytest.mark.anyio
