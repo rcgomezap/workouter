@@ -1,3 +1,4 @@
+import datetime
 from datetime import date
 from uuid import UUID
 
@@ -42,7 +43,7 @@ class UpdateMesocycleWeekInput:
 class AddPlannedSessionInput:
     routine_id: UUID | None = None
     day_of_week: int
-    date: date | None = None
+    date: datetime.date | None = None
     notes: str | None = None
 
 
@@ -50,5 +51,5 @@ class AddPlannedSessionInput:
 class UpdatePlannedSessionInput:
     routine_id: UUID | None = None
     day_of_week: int | None = None
-    date: date | None = None
+    date: datetime.date | None = None
     notes: str | None = None

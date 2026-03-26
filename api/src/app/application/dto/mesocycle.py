@@ -1,3 +1,4 @@
+import datetime
 from datetime import date
 from uuid import UUID
 
@@ -12,7 +13,7 @@ class PlannedSessionDTO(BaseModel):
     id: UUID
     routine: RoutineDTO | None = None
     day_of_week: int
-    date: date
+    date: datetime.date
     notes: str | None = None
 
 
@@ -66,14 +67,14 @@ class UpdateMesocycleWeekInput(BaseModel):
 class AddPlannedSessionInput(BaseModel):
     routine_id: UUID | None = None
     day_of_week: int
-    date: date | None = None
+    date: datetime.date | None = None
     notes: str | None = None
 
 
 class UpdatePlannedSessionInput(BaseModel):
     routine_id: UUID | None = None
     day_of_week: int | None = None
-    date: date | None = None
+    date: datetime.date | None = None
     notes: str | None = None
 
 
