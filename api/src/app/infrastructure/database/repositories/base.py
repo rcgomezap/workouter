@@ -1,6 +1,6 @@
 from typing import Generic, TypeVar, Sequence
 from uuid import UUID
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.domain.repositories.base import BaseRepository
 
@@ -24,6 +24,11 @@ class SQLAlchemyBaseRepository(Generic[T, M], BaseRepository[T]):
         stmt = select(self._model_class).offset(offset).limit(limit)
         result = await self._session.execute(stmt)
         return [self._to_domain(row) for row in result.scalars().all()]
+
+    async def count(self) -> int:
+        stmt = select(func.count()).select_from(self._model_class)
+        result = await self._session.execute(stmt)
+        return result.scalar() or 0
 
     async def add(self, entity: T) -> T:
         model_obj = self._to_model(entity)

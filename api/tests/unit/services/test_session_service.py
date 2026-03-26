@@ -60,13 +60,17 @@ async def test_list_sessions(service, mock_uow):
     pagination = PaginationInput(page=1, page_size=10)
     sessions = [Session(id=uuid4()), Session(id=uuid4())]
     mock_uow.session_repository.list = AsyncMock(return_value=sessions)
+    mock_uow.session_repository.count = AsyncMock(return_value=2)
 
     # Act
     result = await service.list_sessions(pagination)
 
     # Assert
     assert len(result.items) == 2
+    assert result.total == 2
+    assert result.total_pages == 1
     mock_uow.session_repository.list.assert_called_once_with(offset=0, limit=10)
+    mock_uow.session_repository.count.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -87,16 +91,30 @@ async def test_create_session_from_routine(service, mock_uow):
 
     mock_uow.routine_repository.get_by_id = AsyncMock(return_value=routine)
     mock_uow.session_repository.add = AsyncMock()
-    
+
     # We need to return a session that has the exercise cloned
     session_id = uuid4()
     cloned_exercise = SessionExercise(
         id=uuid4(),
         exercise=exercise,
         order=1,
-        sets=[SessionSet(id=uuid4(), set_number=1, set_type=SetType.STANDARD, target_reps=10, target_rir=2, target_weight_kg=Decimal("100.0"))]
+        sets=[
+            SessionSet(
+                id=uuid4(),
+                set_number=1,
+                set_type=SetType.STANDARD,
+                target_reps=10,
+                target_rir=2,
+                target_weight_kg=Decimal("100.0"),
+            )
+        ],
     )
-    session = Session(id=session_id, routine_id=routine_id, status=SessionStatus.PLANNED, exercises=[cloned_exercise])
+    session = Session(
+        id=session_id,
+        routine_id=routine_id,
+        status=SessionStatus.PLANNED,
+        exercises=[cloned_exercise],
+    )
     mock_uow.session_repository.get_by_id.return_value = session
     mock_uow.commit = AsyncMock()
 

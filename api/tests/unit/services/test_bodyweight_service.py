@@ -62,14 +62,17 @@ async def test_list_bodyweight_logs(service, mock_uow):
         BodyweightLog(id=uuid4(), weight_kg=Decimal("81.0"), recorded_at=datetime.now(UTC)),
     ]
     mock_uow.bodyweight_repository.list = AsyncMock(return_value=logs)
+    mock_uow.bodyweight_repository.count = AsyncMock(return_value=2)
 
     # Act
     result = await service.list_bodyweight_logs(pagination)
 
     # Assert
     assert len(result.items) == 2
-    assert result.total == 100  # Hardcoded in service for now
+    assert result.total == 2
+    assert result.total_pages == 1
     mock_uow.bodyweight_repository.list.assert_called_once_with(offset=0, limit=10)
+    mock_uow.bodyweight_repository.count.assert_called_once()
 
 
 @pytest.mark.asyncio

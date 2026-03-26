@@ -64,13 +64,17 @@ async def test_list_exercises(service, mock_uow):
         Exercise(id=uuid4(), name="Deadlift", muscle_groups=[]),
     ]
     mock_uow.exercise_repository.list = AsyncMock(return_value=exercises)
+    mock_uow.exercise_repository.count = AsyncMock(return_value=2)
 
     # Act
     result = await service.list_exercises(pagination)
 
     # Assert
     assert len(result.items) == 2
+    assert result.total == 2
+    assert result.total_pages == 1
     mock_uow.exercise_repository.list.assert_called_once_with(offset=0, limit=10)
+    mock_uow.exercise_repository.count.assert_called_once()
 
 
 @pytest.mark.asyncio

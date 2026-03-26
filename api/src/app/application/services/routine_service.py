@@ -34,7 +34,7 @@ class RoutineService:
             offset = (pagination.page - 1) * pagination.page_size
             limit = pagination.page_size
             routines = await self.uow.routine_repository.list(offset=offset, limit=limit)
-            total = 100  # In a real app, this would be a separate count query
+            total = await self.uow.routine_repository.count()
             return PaginatedRoutines(
                 items=[self._map_to_dto(r) for r in routines],
                 total=total,
@@ -146,14 +146,12 @@ class RoutineService:
             if not re:
                 raise EntityNotFoundException("RoutineExercise", routine_exercise_id)
 
-            # Business Rule: Add a new set. Avoid duplicate set numbers.
-            # However, for simplicity here, we'll just check if the set number is already present.
-            # In a real app, we might want to reorder existing sets.
+            # Business Rule: Add a new set. If a set with the same set_number exists,
+            # update it (upsert behavior). This allows users to modify existing sets
+            # when planning routines.
             existing_set = next((s for s in re.sets if s.set_number == input.set_number), None)
             if existing_set:
-                # Update existing set if it exists (acting as upsert for now to satisfy test)
-                # Or we can just increment other set numbers.
-                # For this task, let's just update the existing one to avoid conflict.
+                # Update the existing set with new values (upsert behavior)
                 existing_set.set_type = input.set_type
                 existing_set.target_reps_min = input.target_reps_min
                 existing_set.target_reps_max = input.target_reps_max

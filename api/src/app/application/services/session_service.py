@@ -37,7 +37,7 @@ class SessionService:
             offset = (pagination.page - 1) * pagination.page_size
             limit = pagination.page_size
             sessions = await self.uow.session_repository.list(offset=offset, limit=limit)
-            total = 100  # In a real app, this would be a separate count query
+            total = await self.uow.session_repository.count()
             return PaginatedSessions(
                 items=[self._map_to_dto(s) for s in sessions],
                 total=total,

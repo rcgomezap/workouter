@@ -60,13 +60,17 @@ async def test_list_routines(service, mock_uow):
     pagination = PaginationInput(page=1, page_size=10)
     routines = [Routine(id=uuid4(), name="Upper"), Routine(id=uuid4(), name="Lower")]
     mock_uow.routine_repository.list = AsyncMock(return_value=routines)
+    mock_uow.routine_repository.count = AsyncMock(return_value=2)
 
     # Act
     result = await service.list_routines(pagination)
 
     # Assert
     assert len(result.items) == 2
+    assert result.total == 2
+    assert result.total_pages == 1
     mock_uow.routine_repository.list.assert_called_once_with(offset=0, limit=10)
+    mock_uow.routine_repository.count.assert_called_once()
 
 
 @pytest.mark.asyncio
