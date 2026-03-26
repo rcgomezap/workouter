@@ -18,6 +18,8 @@ install:  ## Complete project setup (dependencies + hooks + migrations + seed)
 	else \
 		echo "✓ config.yaml already exists, skipping..."; \
 	fi
+	@echo "Creating data and backups directories..."
+	@mkdir -p data backups
 	@echo "Running database migrations..."
 	PYTHONPATH=src uv run alembic upgrade head
 	@echo "Seeding initial data (muscle groups)..."
@@ -79,6 +81,7 @@ db-reset:  ## Reset database (WARNING: deletes all data!)
 	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
 		rm -f data/workout_tracker.db; \
 		echo "Removed database file"; \
+		mkdir -p data backups; \
 		PYTHONPATH=src uv run alembic upgrade head; \
 		echo "Recreated database schema"; \
 		PYTHONPATH=src uv run python -m app.infrastructure.seed; \
