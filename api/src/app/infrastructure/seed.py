@@ -1,6 +1,7 @@
 import asyncio
 
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 # Import all models to ensure SQLAlchemy can resolve relationships
 import app.infrastructure.database.models  # noqa: F401
@@ -29,7 +30,9 @@ MUSCLE_GROUPS = [
 ]
 
 
-async def seed_muscle_groups(session_factory=None):
+async def seed_muscle_groups(
+    session_factory: async_sessionmaker[AsyncSession] | None = None,
+) -> None:
     if session_factory is None:
         config = get_config()
         init_database(config)

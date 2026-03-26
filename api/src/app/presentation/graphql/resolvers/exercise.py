@@ -1,3 +1,4 @@
+from typing import Any
 from uuid import UUID
 
 import strawberry
@@ -14,7 +15,7 @@ from app.presentation.graphql.types.exercise import (
 )
 
 
-def map_exercise(e) -> Exercise:
+def map_exercise(e: Any) -> Exercise:
     return Exercise(
         id=e.id,
         name=e.name,

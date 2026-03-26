@@ -13,6 +13,7 @@ from app.application.dto.session import (
     SessionExerciseDTO,
     SessionSetDTO,
     UpdateSessionExerciseInput,
+    UpdateSessionInput,
     UpdateSessionSetInput,
 )
 from app.application.interfaces.unit_of_work import UnitOfWork
@@ -90,7 +91,7 @@ class SessionService:
                         session.routine_id = routine_id
 
                     # Ensure mesocycle_id is set from the week if missing
-                    if not session.mesocycle_id:
+                    if not session.mesocycle_id and planned_session.mesocycle_week_id is not None:
                         week = await self.uow.mesocycle_repository.get_week_by_id(
                             planned_session.mesocycle_week_id
                         )
@@ -187,6 +188,37 @@ class SessionService:
                 raise EntityNotFoundException("Session", id)
             return self._map_to_dto(session)
 
+    async def update_session(self, id: UUID, input: UpdateSessionInput) -> SessionDTO:
+        async with self.uow:
+            session = await self.uow.session_repository.get_by_id(id)
+            if not session:
+                raise EntityNotFoundException("Session", id)
+
+            if input.started_at is not None:
+                session.started_at = input.started_at
+            if input.completed_at is not None:
+                session.completed_at = input.completed_at
+            if input.status is not None:
+                session.status = input.status
+            if input.notes is not None:
+                session.notes = input.notes
+
+            await self.uow.session_repository.update(session)
+            await self.uow.commit()
+
+            updated = await self.uow.session_repository.get_by_id(id)
+            if not updated:
+                raise EntityNotFoundException("Session", id)
+            return self._map_to_dto(updated)
+
+    async def delete_session(self, id: UUID) -> bool:
+        async with self.uow:
+            deleted = await self.uow.session_repository.delete(id)
+            if not deleted:
+                raise EntityNotFoundException("Session", id)
+            await self.uow.commit()
+            return True
+
     async def log_set_result(self, set_id: UUID, input: LogSetResultInput) -> SessionSetDTO:
         async with self.uow:
             # Finding the set in repository by ID might be needed.
@@ -228,6 +260,8 @@ class SessionService:
 
             # Re-fetch session to include new exercise in the list
             session = await self.uow.session_repository.get_by_id(session_id)
+            if not session:
+                raise EntityNotFoundException("Session", session_id)
             return self._map_to_dto(session)
 
     async def update_exercise(
@@ -249,16 +283,6 @@ class SessionService:
 
             updated_se = await self.uow.session_repository.update_exercise(session_exercise)
             await self.uow.commit()
-
-            # The repository method might not return fully loaded relationships needed for DTO
-            # Safe to re-fetch or trust repository implementation
-            # Given my repository implementation, it calls _to_exercise_domain but relies on loaded relationships.
-            # Let's trust it returns a valid domain object.
-
-            # However, we need to map to DTO. _map_to_dto handles full session.
-            # We need a method to map single exercise.
-            # _map_to_dto does it inline. I should extract _map_exercise_to_dto if possible,
-            # or just copy the logic. I'll duplicate logic inside _map_to_dto for now to be safe and quick.
 
             return SessionExerciseDTO(
                 id=updated_se.id,
@@ -324,6 +348,8 @@ class SessionService:
             session_exercise = await self.uow.session_repository.get_exercise_by_id(
                 session_exercise_id
             )
+            if not session_exercise:
+                raise EntityNotFoundException("SessionExercise", session_exercise_id)
 
             # Map to DTO
             return SessionExerciseDTO(

@@ -1,3 +1,4 @@
+from typing import Any
 from uuid import UUID
 
 import strawberry
@@ -19,7 +20,7 @@ from app.presentation.graphql.types.insight import (
 from app.presentation.graphql.types.session import PaginatedSessions, Session
 
 
-def map_volume_insight(v) -> VolumeInsight:
+def map_volume_insight(v: Any) -> VolumeInsight:
     return VolumeInsight(
         mesocycle_id=v.mesocycle_id,
         weekly_volumes=[
@@ -38,7 +39,7 @@ def map_volume_insight(v) -> VolumeInsight:
     )
 
 
-def map_progressive_overload_insight(p) -> ProgressiveOverloadInsight:
+def map_progressive_overload_insight(p: Any) -> ProgressiveOverloadInsight:
     return ProgressiveOverloadInsight(
         exercise_id=p.exercise_id,
         mesocycle_id=p.mesocycle_id,

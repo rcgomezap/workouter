@@ -1,3 +1,4 @@
+from types import TracebackType
 from typing import Protocol, Self
 
 from app.domain.repositories.bodyweight import BodyweightRepository
@@ -18,7 +19,12 @@ class UnitOfWork(Protocol):
 
     async def __aenter__(self) -> Self: ...
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None: ...
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None: ...
 
     async def commit(self) -> None: ...
 

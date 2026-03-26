@@ -1,3 +1,4 @@
+from typing import Any
 from uuid import UUID
 
 import strawberry
@@ -40,7 +41,7 @@ from app.presentation.graphql.types.exercise import Exercise
 from app.presentation.graphql.types.session import Session, SessionExercise, SessionSet
 
 
-def map_session_set(s) -> SessionSet:
+def map_session_set(s: Any) -> SessionSet:
     return SessionSet(
         id=s.id,
         set_number=s.set_number,
@@ -57,7 +58,7 @@ def map_session_set(s) -> SessionSet:
     )
 
 
-def map_session_exercise(se) -> SessionExercise:
+def map_session_exercise(se: Any) -> SessionExercise:
     return SessionExercise(
         id=se.id,
         exercise=Exercise(
@@ -75,7 +76,7 @@ def map_session_exercise(se) -> SessionExercise:
     )
 
 
-def map_session(s) -> Session:
+def map_session(s: Any) -> Session:
     return Session(
         id=s.id,
         planned_session_id=s.planned_session_id,

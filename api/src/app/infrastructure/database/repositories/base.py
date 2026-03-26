@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, cast
 from uuid import UUID
 
 from sqlalchemy import delete, func, select
@@ -64,7 +64,8 @@ class SQLAlchemyBaseRepository(Generic[T, M], BaseRepository[T]):
     async def delete(self, id: UUID) -> bool:
         stmt = delete(self._model_class).where(self._model_class.id == id)  # type: ignore
         result = await self._session.execute(stmt)
-        return result.rowcount > 0
+        rowcount = cast(int | None, getattr(result, "rowcount", None))
+        return (rowcount or 0) > 0
 
     def _to_domain(self, model_obj: M) -> T:
         raise NotImplementedError

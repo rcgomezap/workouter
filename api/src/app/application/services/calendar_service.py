@@ -8,6 +8,7 @@ from app.application.dto.routine import RoutineDTO, RoutineExerciseDTO, RoutineS
 from app.application.dto.session import SessionDTO, SessionExerciseDTO, SessionSetDTO
 from app.application.interfaces.unit_of_work import UnitOfWork
 from app.domain.entities.mesocycle import PlannedSession
+from app.domain.entities.routine import Routine
 from app.domain.entities.session import Session, SessionSet
 from app.domain.enums import SessionStatus
 
@@ -132,7 +133,7 @@ class CalendarService:
             performed_at=ss.performed_at,
         )
 
-    def _map_routine_to_dto(self, routine) -> RoutineDTO:
+    def _map_routine_to_dto(self, routine: Routine) -> RoutineDTO:
         return RoutineDTO(
             id=routine.id,
             name=routine.name,

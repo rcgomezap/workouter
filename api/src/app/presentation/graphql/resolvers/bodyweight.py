@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 
 import strawberry
 from strawberry.types import Info
@@ -9,7 +10,7 @@ from app.presentation.graphql.inputs.pagination import PaginationInput
 from app.presentation.graphql.types.bodyweight import BodyweightLog, PaginatedBodyweightLogs
 
 
-def map_bodyweight_log(log_entity) -> BodyweightLog:
+def map_bodyweight_log(log_entity: Any) -> BodyweightLog:
     return BodyweightLog(
         id=log_entity.id,
         weight_kg=log_entity.weight_kg,

@@ -1,3 +1,4 @@
+from typing import Any
 from uuid import UUID
 
 import strawberry
@@ -17,7 +18,7 @@ from app.presentation.graphql.types.mesocycle import (
 )
 
 
-def map_planned_session(ps) -> PlannedSession:
+def map_planned_session(ps: Any) -> PlannedSession:
     return PlannedSession(
         id=ps.id,
         routine=map_routine(ps.routine) if ps.routine else None,
@@ -27,7 +28,7 @@ def map_planned_session(ps) -> PlannedSession:
     )
 
 
-def map_mesocycle_week(w) -> MesocycleWeek:
+def map_mesocycle_week(w: Any) -> MesocycleWeek:
     return MesocycleWeek(
         id=w.id,
         week_number=w.week_number,
@@ -38,7 +39,7 @@ def map_mesocycle_week(w) -> MesocycleWeek:
     )
 
 
-def map_mesocycle(m) -> Mesocycle:
+def map_mesocycle(m: Any) -> Mesocycle:
     return Mesocycle(
         id=m.id,
         name=m.name,

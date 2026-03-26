@@ -1,4 +1,6 @@
 from collections import defaultdict
+from collections.abc import Iterable
+from decimal import Decimal
 from uuid import UUID
 
 from app.application.dto.insight import (
@@ -12,6 +14,7 @@ from app.application.dto.insight import (
 )
 from app.application.dto.pagination import PaginatedResult, PaginationInput
 from app.application.interfaces.unit_of_work import UnitOfWork
+from app.domain.entities.session import Session, SessionSet
 from app.domain.enums import SessionStatus
 
 
@@ -39,8 +42,8 @@ class InsightService:
             # Map week_id to week_number
             week_map = {w.id: w.week_number for w in mesocycle.weeks}
 
-            weekly_sets = defaultdict(int)
-            muscle_group_sets = defaultdict(int)
+            weekly_sets: defaultdict[int, int] = defaultdict(int)
+            muscle_group_sets: defaultdict[tuple[UUID, str], int] = defaultdict(int)
             total_sets = 0
 
             for session in sessions:
@@ -101,7 +104,7 @@ class InsightService:
         exercise_id: UUID,
         pagination: PaginationInput,
         routine_id: UUID | None = None,
-    ):
+    ) -> PaginatedResult[Session]:
         async with self.uow:
             offset = (pagination.page - 1) * pagination.page_size
             items = await self.uow.session_repository.list_by_filters(
@@ -184,17 +187,18 @@ class InsightService:
                 if not valid_sets:
                     continue
 
-                max_weight = float(max(s.actual_weight_kg for s in valid_sets))
-                avg_reps = sum(s.actual_reps for s in valid_sets) / len(valid_sets)
+                max_weight_decimal = max(
+                    (s.actual_weight_kg for s in valid_sets if s.actual_weight_kg is not None),
+                    default=Decimal("0"),
+                )
+                max_weight = float(max_weight_decimal)
+                reps = [s.actual_reps for s in valid_sets if s.actual_reps is not None]
+                avg_reps = (sum(reps) / len(reps)) if reps else 0.0
 
                 rirs = [s.actual_rir for s in valid_sets if s.actual_rir is not None]
                 avg_rir = sum(rirs) / len(rirs) if rirs else 0.0
 
-                e1rms = [
-                    float(s.calculate_epley_1rm())
-                    for s in valid_sets
-                    if s.calculate_epley_1rm() is not None
-                ]
+                e1rms = [float(one_rm) for one_rm in self._iter_e1rms(valid_sets)]
                 best_e1rm = max(e1rms) if e1rms else 0.0
 
                 weekly_progress.append(
@@ -266,3 +270,11 @@ class InsightService:
                 weekly_intensities=weekly_intensities,
                 overall_avg_rir=overall_avg_rir,
             )
+
+    def _iter_e1rms(self, sets: Iterable[SessionSet]) -> list[Decimal]:
+        values: list[Decimal] = []
+        for session_set in sets:
+            one_rm = session_set.calculate_epley_1rm()
+            if one_rm is not None:
+                values.append(one_rm)
+        return values

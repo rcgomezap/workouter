@@ -1,3 +1,5 @@
+# ruff: noqa: B008
+
 from collections.abc import AsyncGenerator
 
 from fastapi import Depends
@@ -66,4 +68,7 @@ async def get_backup_service(uow: UnitOfWork = Depends(get_unit_of_work)) -> Bac
     from app.infrastructure.backup.manager import BackupManager
     from app.infrastructure.database.connection import get_engine
 
-    return BackupManager(load_config(), get_engine())
+    engine = get_engine()
+    if engine is None:
+        raise RuntimeError("Database engine is not initialized")
+    return BackupManager(load_config(), engine)

@@ -1,3 +1,4 @@
+from typing import Any
 from uuid import UUID
 
 import strawberry
@@ -15,7 +16,7 @@ from app.presentation.graphql.types.routine import (
 )
 
 
-def map_routine_set(s) -> RoutineSet:
+def map_routine_set(s: Any) -> RoutineSet:
     return RoutineSet(
         id=s.id,
         set_number=s.set_number,
@@ -29,7 +30,7 @@ def map_routine_set(s) -> RoutineSet:
     )
 
 
-def map_exercise(e) -> Exercise:
+def map_exercise(e: Any) -> Exercise:
     return Exercise(
         id=e.id,
         name=e.name,
@@ -45,7 +46,7 @@ def map_exercise(e) -> Exercise:
     )
 
 
-def map_routine_exercise(re) -> RoutineExercise:
+def map_routine_exercise(re: Any) -> RoutineExercise:
     return RoutineExercise(
         id=re.id,
         exercise=map_exercise(re.exercise),
@@ -57,7 +58,7 @@ def map_routine_exercise(re) -> RoutineExercise:
     )
 
 
-def map_routine(r) -> Routine:
+def map_routine(r: Any) -> Routine:
     return Routine(
         id=r.id,
         name=r.name,

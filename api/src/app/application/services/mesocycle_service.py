@@ -18,6 +18,7 @@ from app.application.dto.pagination import PaginationInput
 from app.application.dto.routine import RoutineDTO, RoutineExerciseDTO, RoutineSetDTO
 from app.application.interfaces.unit_of_work import UnitOfWork
 from app.domain.entities.mesocycle import Mesocycle, MesocycleWeek, PlannedSession
+from app.domain.entities.routine import Routine
 from app.domain.enums import MesocycleStatus
 from app.domain.exceptions import EntityNotFoundException
 
@@ -131,7 +132,10 @@ class MesocycleService:
                 week.end_date = input.end_date
 
             # Sync with meso
-            meso = await self.uow.mesocycle_repository.get_by_id(week.mesocycle_id)  # type: ignore
+            mesocycle_id = week.mesocycle_id
+            if mesocycle_id is None:
+                raise EntityNotFoundException("Mesocycle", id)
+            meso = await self.uow.mesocycle_repository.get_by_id(mesocycle_id)
             if meso:
                 for i, w in enumerate(meso.weeks):
                     if w.id == week.id:
@@ -154,10 +158,6 @@ class MesocycleService:
         self, mesocycle_week_id: UUID, input: AddPlannedSessionInput
     ) -> PlannedSessionDTO:
         async with self.uow:
-            # We need to find the week. This might require a week repository or
-            # navigating from a meso. For simplicity, assume we can get meso by week_id if repo supports it,
-            # but usually repo get_by_id for week is cleaner.
-            # Let's check what repositories we have.
             week = await self.uow.mesocycle_repository.get_week_by_id(mesocycle_week_id)
             if not week:
                 raise EntityNotFoundException("MesocycleWeek", mesocycle_week_id)
@@ -187,14 +187,16 @@ class MesocycleService:
             # For now, let's just try to update via meso repo if it can find meso by week.
             # Get the week again to ensure we have the mesocycle_id if not present
             # but week.mesocycle_id should be there.
-            meso = await self.uow.mesocycle_repository.get_by_id(week.mesocycle_id)  # type: ignore
+            mesocycle_id = week.mesocycle_id
+            if mesocycle_id is None:
+                raise EntityNotFoundException("Mesocycle", mesocycle_week_id)
+            meso = await self.uow.mesocycle_repository.get_by_id(mesocycle_id)
             print(f"DEBUG: Fetched meso={meso.id if meso else 'NONE'} for week synchronization")
             if meso:
-                # IMPORTANT: We need to ensure the week we updated is the one in meso.weeks
                 for i, w in enumerate(meso.weeks):
                     if w.id == week.id:
                         print(
-                            f"DEBUG: Found week in meso.weeks, sessions count: {len(w.planned_sessions)}"
+                            f"DEBUG: Found week in meso.weeks, sessions: {len(w.planned_sessions)}"
                         )
                         meso.weeks[i] = week
                         break
@@ -202,7 +204,7 @@ class MesocycleService:
             await self.uow.commit()
             return self._map_planned_session_to_dto(ps)
 
-    async def update_planned_session(
+    async def update_planned_session(  # noqa: PLR0912
         self, id: UUID, input: UpdatePlannedSessionInput
     ) -> PlannedSessionDTO:
         async with self.uow:
@@ -223,13 +225,19 @@ class MesocycleService:
                 ps.notes = input.notes
 
             # Sync with week/meso
-            week = await self.uow.mesocycle_repository.get_week_by_id(ps.mesocycle_week_id)  # type: ignore
+            mesocycle_week_id = ps.mesocycle_week_id
+            if mesocycle_week_id is None:
+                raise EntityNotFoundException("MesocycleWeek", id)
+            week = await self.uow.mesocycle_repository.get_week_by_id(mesocycle_week_id)
             if week:
                 for i, s in enumerate(week.planned_sessions):
                     if s.id == ps.id:
                         week.planned_sessions[i] = ps
                         break
-                meso = await self.uow.mesocycle_repository.get_by_id(week.mesocycle_id)  # type: ignore
+                mesocycle_id = week.mesocycle_id
+                if mesocycle_id is None:
+                    raise EntityNotFoundException("Mesocycle", id)
+                meso = await self.uow.mesocycle_repository.get_by_id(mesocycle_id)
                 if meso:
                     for i, w in enumerate(meso.weeks):
                         if w.id == week.id:
@@ -297,7 +305,7 @@ class MesocycleService:
             ],
         )
 
-    def _map_routine_to_dto(self, routine) -> RoutineDTO:
+    def _map_routine_to_dto(self, routine: Routine) -> RoutineDTO:
         # Map full routine including exercises and sets
         return RoutineDTO(
             id=routine.id,

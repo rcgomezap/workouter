@@ -1,10 +1,12 @@
 from datetime import date
+from typing import Any
 from uuid import UUID
 
 import strawberry
 from strawberry.types import Info
 
 from app.application.dto.pagination import PaginationInput as PaginationDTO
+from app.domain.enums import SessionStatus as DomainSessionStatus
 from app.presentation.graphql.context import Context
 from app.presentation.graphql.inputs.pagination import PaginationInput
 from app.presentation.graphql.resolvers.exercise import map_exercise
@@ -17,7 +19,7 @@ from app.presentation.graphql.types.session import (
 )
 
 
-def map_session_set(s) -> SessionSet:
+def map_session_set(s: Any) -> SessionSet:
     return SessionSet(
         id=s.id,
         set_number=s.set_number,
@@ -34,7 +36,7 @@ def map_session_set(s) -> SessionSet:
     )
 
 
-def map_session_exercise(se) -> SessionExercise:
+def map_session_exercise(se: Any) -> SessionExercise:
     return SessionExercise(
         id=se.id,
         exercise=map_exercise(se.exercise),
@@ -46,7 +48,7 @@ def map_session_exercise(se) -> SessionExercise:
     )
 
 
-def map_session(s) -> Session:
+def map_session(s: Any) -> Session:
     return Session(
         id=s.id,
         planned_session_id=s.planned_session_id,
@@ -63,7 +65,7 @@ def map_session(s) -> Session:
 @strawberry.type
 class SessionQuery:
     @strawberry.field
-    async def sessions(
+    async def sessions(  # noqa: PLR0913
         self,
         info: Info[Context, None],
         pagination: PaginationInput | None = None,
@@ -79,7 +81,7 @@ class SessionQuery:
 
         result = await info.context.session_service.list_sessions(
             pagination=p_dto,
-            status=status,
+            status=DomainSessionStatus(status.value) if status else None,
             mesocycle_id=mesocycle_id,
             date_from=date_from,
             date_to=date_to,

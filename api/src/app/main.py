@@ -1,9 +1,22 @@
+# ruff: noqa: B008, PLR0913, PLR0915
+
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 import structlog
 from fastapi import Depends, FastAPI, HTTPException
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from strawberry.fastapi import GraphQLRouter
 
+from app.application.services.backup_service import BackupService
+from app.application.services.bodyweight_service import BodyweightService
+from app.application.services.calendar_service import CalendarService
+from app.application.services.exercise_service import ExerciseService
+from app.application.services.insight_service import InsightService
+from app.application.services.mesocycle_service import MesocycleService
+from app.application.services.muscle_group_service import MuscleGroupService
+from app.application.services.routine_service import RoutineService
+from app.application.services.session_service import SessionService
 from app.config.loader import load_config as get_config
 from app.dependencies import (
     get_backup_service,
@@ -31,15 +44,15 @@ from app.presentation.middleware.logging import LoggingMiddleware
 
 
 async def get_context(
-    exercise_service=Depends(get_exercise_service),
-    muscle_group_service=Depends(get_muscle_group_service),
-    routine_service=Depends(get_routine_service),
-    mesocycle_service=Depends(get_mesocycle_service),
-    session_service=Depends(get_session_service),
-    bodyweight_service=Depends(get_bodyweight_service),
-    insight_service=Depends(get_insight_service),
-    calendar_service=Depends(get_calendar_service),
-    backup_service=Depends(get_backup_service),
+    exercise_service: ExerciseService = Depends(get_exercise_service),
+    muscle_group_service: MuscleGroupService = Depends(get_muscle_group_service),
+    routine_service: RoutineService = Depends(get_routine_service),
+    mesocycle_service: MesocycleService = Depends(get_mesocycle_service),
+    session_service: SessionService = Depends(get_session_service),
+    bodyweight_service: BodyweightService = Depends(get_bodyweight_service),
+    insight_service: InsightService = Depends(get_insight_service),
+    calendar_service: CalendarService = Depends(get_calendar_service),
+    backup_service: BackupService = Depends(get_backup_service),
 ) -> Context:
     return Context(
         exercise_service=exercise_service,
@@ -54,21 +67,25 @@ async def get_context(
     )
 
 
-def create_app(engine=None, session_factory=None) -> FastAPI:
+def create_app(
+    engine: AsyncEngine | None = None,
+    session_factory: async_sessionmaker[AsyncSession] | None = None,
+) -> FastAPI:
     config = get_config()
 
     # Capture parameters in a local dict to avoid closure issues
-    overrides = {"engine": engine, "session_factory": session_factory}
+    override_engine = engine
+    override_session_factory = session_factory
 
     @asynccontextmanager
-    async def lifespan(app: FastAPI):
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         # Database Initialization
         from app.infrastructure.database import connection
 
-        if overrides["engine"]:
-            connection._engine = overrides["engine"]
-        if overrides["session_factory"]:
-            connection._session_factory = overrides["session_factory"]
+        if override_engine:
+            connection._engine = override_engine
+        if override_session_factory:
+            connection._session_factory = override_session_factory
 
         if connection._engine is None:
             init_database(config)
@@ -155,14 +172,14 @@ def create_app(engine=None, session_factory=None) -> FastAPI:
     # GraphQL
     graphql_app = GraphQLRouter(
         schema,
-        context_getter=get_context,
+        context_getter=get_context,  # type: ignore[arg-type]
         graphql_ide="graphiql" if config.server.debug else None,
     )
     app.include_router(graphql_app, prefix="/graphql")
 
     # Health Check
     @app.get("/health")
-    async def health():
+    async def health() -> dict[str, str]:
         db_ok = await check_db()
         if not db_ok:
             raise HTTPException(status_code=503, detail="Database connection unavailable")

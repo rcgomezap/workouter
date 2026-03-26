@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 import strawberry
 from strawberry.types import Info
@@ -23,5 +23,5 @@ class BackupMutation:
             success=res.success,
             filename=res.filename,
             size_bytes=res.size_bytes,
-            created_at=res.created_at,
+            created_at=res.created_at or datetime.now(UTC),
         )

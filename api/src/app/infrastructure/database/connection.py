@@ -1,11 +1,18 @@
+# ruff: noqa: PLW0603
+
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 
 from app.config.schema import Config
 
 # Global engine and session factory
-_engine = None
-_session_factory = None
+_engine: AsyncEngine | None = None
+_session_factory: async_sessionmaker[AsyncSession] | None = None
 
 
 def init_database(config: Config) -> None:
@@ -44,10 +51,12 @@ def get_session_factory() -> async_sessionmaker[AsyncSession]:
         from app.config.loader import load_config
 
         init_database(load_config())
+    if _session_factory is None:
+        raise RuntimeError("Database session factory is not initialized")
     return _session_factory
 
 
-def get_engine():
+def get_engine() -> AsyncEngine | None:
     return _engine
 
 

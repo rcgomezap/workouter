@@ -1,4 +1,5 @@
 from datetime import date
+from typing import Any
 
 import strawberry
 from strawberry.types import Info
@@ -9,7 +10,7 @@ from app.presentation.graphql.resolvers.session import map_session
 from app.presentation.graphql.types.calendar import CalendarDay
 
 
-def map_calendar_day(d) -> CalendarDay:
+def map_calendar_day(d: Any) -> CalendarDay:
     return CalendarDay(
         date=d.date,
         planned_session=map_planned_session(d.planned_session) if d.planned_session else None,

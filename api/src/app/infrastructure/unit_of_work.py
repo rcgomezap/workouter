@@ -1,3 +1,4 @@
+from types import TracebackType
 from typing import Self
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,7 +25,12 @@ class SQLAlchemyUnitOfWork(UnitOfWork):
     async def __aenter__(self) -> Self:
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
         if exc_type:
             await self.rollback()
         else:

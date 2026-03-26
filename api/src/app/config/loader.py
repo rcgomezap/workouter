@@ -34,7 +34,7 @@ def _merge_env_overrides(config_dict: dict[str, Any]) -> None:
             current = current[part]
 
         # Handle type conversion for numbers and booleans
-        val = value
+        val: Any = value
         if val.lower() == "true":
             val = True
         elif val.lower() == "false":
@@ -71,15 +71,15 @@ def load_config(config_path: str | None = None) -> Config:
         if alt_path.exists():
             path = alt_path
 
-    raw_config = {}
+    raw_config: dict[str, Any] = {}
     if path.exists():
         try:
             with open(path) as f:
                 raw_config = yaml.safe_load(f) or {}
         except yaml.YAMLError as e:
-            raise ConfigError(f"Error parsing YAML configuration: {e}")
+            raise ConfigError(f"Error parsing YAML configuration: {e}") from e
         except Exception as e:
-            raise ConfigError(f"Unexpected error reading configuration file: {e}")
+            raise ConfigError(f"Unexpected error reading configuration file: {e}") from e
 
     # Apply environment overrides
     _merge_env_overrides(raw_config)
@@ -99,4 +99,4 @@ def load_config(config_path: str | None = None) -> Config:
             msg = error["msg"]
             error_messages.append(f"{loc}: {msg}")
 
-        raise ConfigError("Configuration validation failed:\n" + "\n".join(error_messages))
+        raise ConfigError("Configuration validation failed:\n" + "\n".join(error_messages)) from e

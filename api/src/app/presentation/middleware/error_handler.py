@@ -1,5 +1,7 @@
-import strawberry
+from collections.abc import Generator
+
 import structlog
+from strawberry.extensions import SchemaExtension
 
 from app.domain.exceptions import (
     ConflictException,
@@ -11,8 +13,8 @@ from app.domain.exceptions import (
 logger = structlog.get_logger(__name__)
 
 
-class ErrorHandlerExtension(strawberry.extensions.SchemaExtension):
-    def on_operation(self):
+class ErrorHandlerExtension(SchemaExtension):
+    def on_operation(self) -> Generator[None, None, None]:
         yield
         result = self.execution_context.result
         if result and result.errors:

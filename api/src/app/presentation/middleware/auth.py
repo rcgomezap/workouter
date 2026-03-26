@@ -1,17 +1,19 @@
+from collections.abc import Awaitable, Callable
+
 from fastapi import Request
-from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse, Response
 
 from app.config.loader import load_config as get_config
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        if (
-            request.url.path == "/health"
-            or request.url.path == "/docs"
-            or request.url.path == "/openapi.json"
-        ):
+    async def dispatch(
+        self,
+        request: Request,
+        call_next: Callable[[Request], Awaitable[Response]],
+    ) -> Response:
+        if request.url.path in {"/health", "/docs", "/openapi.json"}:
             return await call_next(request)
 
         auth_header = request.headers.get("Authorization")
