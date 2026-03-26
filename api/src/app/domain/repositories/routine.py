@@ -1,6 +1,7 @@
 from typing import Protocol
+from uuid import UUID
 
-from app.domain.entities.routine import Routine
+from app.domain.entities.routine import Routine, RoutineExercise, RoutineSet
 from app.domain.repositories.base import BaseRepository
 
 

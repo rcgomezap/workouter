@@ -46,7 +46,7 @@ class SQLAlchemySessionRepository(
             return self._to_domain(model_obj)
         return None
 
-    async def list_by_filters(
+    async def list_by_filters(  # noqa: PLR0913
         self,
         status: SessionStatus | None = None,
         mesocycle_id: UUID | None = None,
@@ -98,7 +98,7 @@ class SQLAlchemySessionRepository(
         # Use .unique() to handle the join results correctly with selectinload
         return [self._to_domain(row) for row in result.scalars().unique().all()]
 
-    async def count_by_filters(
+    async def count_by_filters(  # noqa: PLR0913
         self,
         status: SessionStatus | None = None,
         mesocycle_id: UUID | None = None,
@@ -248,7 +248,8 @@ class SQLAlchemySessionRepository(
         ):
             sets = [self._to_set_domain(ss) for ss in model_obj.session_sets]
 
-        from app.domain.entities.exercise import Exercise, ExerciseMuscleGroup, MuscleGroup
+        from app.domain.entities.exercise import Exercise, ExerciseMuscleGroup
+        from app.domain.entities.muscle_group import MuscleGroup
         from app.domain.enums import MuscleRole
 
         exercise_domain = None
