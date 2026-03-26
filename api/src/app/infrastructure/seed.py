@@ -2,6 +2,8 @@ import asyncio
 
 from sqlalchemy import select
 
+# Import all models to ensure SQLAlchemy can resolve relationships
+import app.infrastructure.database.models  # noqa: F401
 from app.config.loader import load_config as get_config
 from app.infrastructure.database.connection import get_session_factory, init_database
 from app.infrastructure.database.models.muscle_group import MuscleGroupTable
