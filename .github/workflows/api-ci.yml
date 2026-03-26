@@ -28,5 +28,7 @@ jobs:
         run: make install
 
       - name: Run Tests
-        # This calls 'uv run pytest' as defined in your Makefile
         run: make test
+
+      - name: Run Type Check
+        run: make type-check

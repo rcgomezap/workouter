@@ -1,0 +1,41 @@
+name: API Auto Format
+
+on:
+  pull_request:
+    paths:
+      - "api/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./api
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Format code
+        run: make format
+
+      - name: Commit and push formatting changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(api): auto-format code"
+          file_pattern: "api/**/*.py"
