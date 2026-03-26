@@ -1,12 +1,13 @@
-import pytest
+from datetime import UTC, date, datetime
+from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
-from datetime import datetime, UTC
-from decimal import Decimal
 
-from app.application.services.bodyweight_service import BodyweightService
+import pytest
+
 from app.application.dto.bodyweight import LogBodyweightInput, UpdateBodyweightInput
 from app.application.dto.pagination import PaginationInput
+from app.application.services.bodyweight_service import BodyweightService
 from app.domain.entities.bodyweight import BodyweightLog
 from app.domain.exceptions import EntityNotFoundException
 
@@ -61,8 +62,9 @@ async def test_list_bodyweight_logs(service, mock_uow):
         BodyweightLog(id=uuid4(), weight_kg=Decimal("80.0"), recorded_at=datetime.now(UTC)),
         BodyweightLog(id=uuid4(), weight_kg=Decimal("81.0"), recorded_at=datetime.now(UTC)),
     ]
-    mock_uow.bodyweight_repository.list = AsyncMock(return_value=logs)
-    mock_uow.bodyweight_repository.count = AsyncMock(return_value=2)
+    # Update mocks to use list_by_date_range and count_by_date_range
+    mock_uow.bodyweight_repository.list_by_date_range = AsyncMock(return_value=logs)
+    mock_uow.bodyweight_repository.count_by_date_range = AsyncMock(return_value=2)
 
     # Act
     result = await service.list_bodyweight_logs(pagination)
@@ -71,8 +73,66 @@ async def test_list_bodyweight_logs(service, mock_uow):
     assert len(result.items) == 2
     assert result.total == 2
     assert result.total_pages == 1
-    mock_uow.bodyweight_repository.list.assert_called_once_with(offset=0, limit=10)
-    mock_uow.bodyweight_repository.count.assert_called_once()
+    mock_uow.bodyweight_repository.list_by_date_range.assert_called_once_with(
+        date_from=None, date_to=None, offset=0, limit=10
+    )
+    mock_uow.bodyweight_repository.count_by_date_range.assert_called_once_with(
+        date_from=None, date_to=None
+    )
+
+
+@pytest.mark.asyncio
+async def test_list_bodyweight_logs_with_date_filters(service, mock_uow):
+    # Arrange
+    pagination = PaginationInput(page=1, page_size=10)
+    logs = []
+    date_from = date(2023, 1, 1)
+    date_to = date(2023, 1, 31)
+
+    mock_uow.bodyweight_repository.list_by_date_range = AsyncMock(return_value=logs)
+    mock_uow.bodyweight_repository.count_by_date_range = AsyncMock(return_value=0)
+
+    # Act
+    result = await service.list_bodyweight_logs(
+        pagination=pagination,
+        date_from=date_from,
+        date_to=date_to,
+    )
+
+    # Assert
+    assert len(result.items) == 0
+    assert result.total == 0
+    mock_uow.bodyweight_repository.list_by_date_range.assert_called_once_with(
+        date_from=date_from, date_to=date_to, offset=0, limit=10
+    )
+    mock_uow.bodyweight_repository.count_by_date_range.assert_called_once_with(
+        date_from=date_from, date_to=date_to
+    )
+
+
+@pytest.mark.asyncio
+async def test_list_bodyweight_logs_with_partial_date_filters(service, mock_uow):
+    # Arrange
+    pagination = PaginationInput(page=1, page_size=10)
+    logs = []
+    date_from = date(2023, 1, 1)
+
+    mock_uow.bodyweight_repository.list_by_date_range = AsyncMock(return_value=logs)
+    mock_uow.bodyweight_repository.count_by_date_range = AsyncMock(return_value=0)
+
+    # Act
+    await service.list_bodyweight_logs(
+        pagination=pagination,
+        date_from=date_from,
+    )
+
+    # Assert
+    mock_uow.bodyweight_repository.list_by_date_range.assert_called_once_with(
+        date_from=date_from, date_to=None, offset=0, limit=10
+    )
+    mock_uow.bodyweight_repository.count_by_date_range.assert_called_once_with(
+        date_from=date_from, date_to=None
+    )
 
 
 @pytest.mark.asyncio

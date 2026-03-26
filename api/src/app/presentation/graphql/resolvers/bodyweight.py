@@ -1,20 +1,21 @@
-import strawberry
-from uuid import UUID
 from datetime import datetime
+
+import strawberry
 from strawberry.types import Info
-from app.presentation.graphql.context import Context
-from app.presentation.graphql.types.bodyweight import BodyweightLog, PaginatedBodyweightLogs
-from app.presentation.graphql.inputs.pagination import PaginationInput
+
 from app.application.dto.pagination import PaginationInput as PaginationDTO
+from app.presentation.graphql.context import Context
+from app.presentation.graphql.inputs.pagination import PaginationInput
+from app.presentation.graphql.types.bodyweight import BodyweightLog, PaginatedBodyweightLogs
 
 
-def map_bodyweight_log(l) -> BodyweightLog:
+def map_bodyweight_log(log_entity) -> BodyweightLog:
     return BodyweightLog(
-        id=l.id,
-        weight_kg=l.weight_kg,
-        recorded_at=l.recorded_at,
-        notes=l.notes,
-        created_at=l.created_at,
+        id=log_entity.id,
+        weight_kg=log_entity.weight_kg,
+        recorded_at=log_entity.recorded_at,
+        notes=log_entity.notes,
+        created_at=log_entity.created_at,
     )
 
 
@@ -32,9 +33,18 @@ class BodyweightQuery:
             page=pagination.page if pagination else 1,
             page_size=pagination.page_size if pagination else 20,
         )
-        result = await info.context.bodyweight_service.list_bodyweight_logs(p_dto)
+
+        # Convert datetime to date for service layer
+        date_from_filter = date_from.date() if date_from else None
+        date_to_filter = date_to.date() if date_to else None
+
+        result = await info.context.bodyweight_service.list_bodyweight_logs(
+            pagination=p_dto,
+            date_from=date_from_filter,
+            date_to=date_to_filter,
+        )
         return PaginatedBodyweightLogs(
-            items=[map_bodyweight_log(l) for l in result.items],
+            items=[map_bodyweight_log(log) for log in result.items],
             total=result.total,
             page=result.page,
             page_size=result.page_size,

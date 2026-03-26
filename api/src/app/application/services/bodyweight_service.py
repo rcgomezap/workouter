@@ -1,12 +1,14 @@
+from datetime import date
 from uuid import UUID
-from app.application.interfaces.unit_of_work import UnitOfWork
+
 from app.application.dto.bodyweight import (
     BodyweightLogDTO,
     LogBodyweightInput,
-    UpdateBodyweightInput,
     PaginatedBodyweightLogs,
+    UpdateBodyweightInput,
 )
 from app.application.dto.pagination import PaginationInput
+from app.application.interfaces.unit_of_work import UnitOfWork
 from app.domain.entities.bodyweight import BodyweightLog
 from app.domain.exceptions import EntityNotFoundException
 
@@ -22,14 +24,30 @@ class BodyweightService:
                 raise EntityNotFoundException("BodyweightLog", id)
             return self._map_to_dto(log)
 
-    async def list_bodyweight_logs(self, pagination: PaginationInput) -> PaginatedBodyweightLogs:
+    async def list_bodyweight_logs(
+        self,
+        pagination: PaginationInput,
+        date_from: date | None = None,
+        date_to: date | None = None,
+    ) -> PaginatedBodyweightLogs:
         async with self.uow:
             offset = (pagination.page - 1) * pagination.page_size
             limit = pagination.page_size
-            logs = await self.uow.bodyweight_repository.list(offset=offset, limit=limit)
-            total = await self.uow.bodyweight_repository.count()
+
+            logs = await self.uow.bodyweight_repository.list_by_date_range(
+                date_from=date_from,
+                date_to=date_to,
+                offset=offset,
+                limit=limit,
+            )
+
+            total = await self.uow.bodyweight_repository.count_by_date_range(
+                date_from=date_from,
+                date_to=date_to,
+            )
+
             return PaginatedBodyweightLogs(
-                items=[self._map_to_dto(l) for l in logs],
+                items=[self._map_to_dto(log) for log in logs],
                 total=total,
                 page=pagination.page,
                 page_size=pagination.page_size,
