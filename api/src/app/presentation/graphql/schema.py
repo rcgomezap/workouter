@@ -18,29 +18,27 @@ from app.presentation.middleware.error_handler import ErrorHandlerExtension
 
 @strawberry.type
 class Query(
-    ExerciseQuery, 
-    RoutineQuery, 
-    MesocycleQuery, 
-    SessionQuery, 
-    BodyweightQuery, 
-    CalendarQuery, 
-    InsightQuery
+    ExerciseQuery,
+    RoutineQuery,
+    MesocycleQuery,
+    SessionQuery,
+    BodyweightQuery,
+    CalendarQuery,
+    InsightQuery,
 ):
     pass
+
 
 @strawberry.type
 class Mutation(
-    ExerciseMutation, 
-    RoutineMutation, 
-    MesocycleMutation, 
-SessionMutation, 
-    BodyweightMutation, 
-    BackupMutation
+    ExerciseMutation,
+    RoutineMutation,
+    MesocycleMutation,
+    SessionMutation,
+    BodyweightMutation,
+    BackupMutation,
 ):
     pass
 
-schema = strawberry.Schema(
-    query=Query, 
-    mutation=Mutation,
-    extensions=[ErrorHandlerExtension]
-)
+
+schema = strawberry.Schema(query=Query, mutation=Mutation, extensions=[ErrorHandlerExtension])

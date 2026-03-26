@@ -10,6 +10,7 @@ from app.domain.exceptions import (
 
 logger = structlog.get_logger(__name__)
 
+
 class ErrorHandlerExtension(strawberry.extensions.SchemaExtension):
     def on_operation(self):
         yield

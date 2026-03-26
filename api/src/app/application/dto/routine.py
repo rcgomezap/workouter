@@ -19,6 +19,7 @@ class RoutineSetDTO(BaseModel):
     weight_reduction_pct: Decimal | None = None
     rest_seconds: int | None = None
 
+
 class RoutineExerciseDTO(BaseModel):
     id: UUID
     exercise: ExerciseDTO
@@ -28,19 +29,23 @@ class RoutineExerciseDTO(BaseModel):
     notes: str | None = None
     sets: list[RoutineSetDTO]
 
+
 class RoutineDTO(BaseModel):
     id: UUID
     name: str
     description: str | None = None
     exercises: list[RoutineExerciseDTO]
 
+
 class CreateRoutineInput(BaseModel):
     name: str
     description: str | None = None
 
+
 class UpdateRoutineInput(BaseModel):
     name: str | None = None
     description: str | None = None
+
 
 class AddRoutineExerciseInput(BaseModel):
     exercise_id: UUID
@@ -49,11 +54,13 @@ class AddRoutineExerciseInput(BaseModel):
     rest_seconds: int | None = None
     notes: str | None = None
 
+
 class UpdateRoutineExerciseInput(BaseModel):
     order: int | None = None
     superset_group: int | None = None
     rest_seconds: int | None = None
     notes: str | None = None
+
 
 class AddRoutineSetInput(BaseModel):
     set_number: int
@@ -65,6 +72,7 @@ class AddRoutineSetInput(BaseModel):
     weight_reduction_pct: Decimal | None = None
     rest_seconds: int | None = None
 
+
 class UpdateRoutineSetInput(BaseModel):
     set_number: int | None = None
     set_type: SetType | None = None
@@ -74,6 +82,7 @@ class UpdateRoutineSetInput(BaseModel):
     target_weight_kg: Decimal | None = None
     weight_reduction_pct: Decimal | None = None
     rest_seconds: int | None = None
+
 
 class PaginatedRoutines(PaginatedResult[RoutineDTO]):
     pass

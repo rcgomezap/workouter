@@ -19,6 +19,7 @@ class RoutineSet:
     weight_reduction_pct: Decimal | None
     rest_seconds: int | None
 
+
 @strawberry.type
 class RoutineExercise:
     id: UUID
@@ -29,12 +30,14 @@ class RoutineExercise:
     notes: str | None
     sets: list[RoutineSet]
 
+
 @strawberry.type
 class Routine:
     id: UUID
     name: str
     description: str | None
     exercises: list[RoutineExercise]
+
 
 @strawberry.type
 class PaginatedRoutines:

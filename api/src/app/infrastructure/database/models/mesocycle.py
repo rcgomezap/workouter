@@ -25,7 +25,9 @@ class MesocycleTable(Base, UUIDMixin, TimestampMixin):
 
     # Relationships
     weeks: Mapped[list["MesocycleWeekTable"]] = relationship(
-        back_populates="mesocycle", cascade="all, delete-orphan", order_by="MesocycleWeekTable.week_number"
+        back_populates="mesocycle",
+        cascade="all, delete-orphan",
+        order_by="MesocycleWeekTable.week_number",
     )
     sessions: Mapped[list["SessionTable"]] = relationship(back_populates="mesocycle")
 

@@ -22,35 +22,48 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     async with session_factory() as session:
         yield session
 
+
 async def get_unit_of_work(session: AsyncSession = Depends(get_db_session)) -> UnitOfWork:
     return SQLAlchemyUnitOfWork(session)
+
 
 async def get_exercise_service(uow: UnitOfWork = Depends(get_unit_of_work)) -> ExerciseService:
     return ExerciseService(uow)
 
-async def get_muscle_group_service(uow: UnitOfWork = Depends(get_unit_of_work)) -> MuscleGroupService:
+
+async def get_muscle_group_service(
+    uow: UnitOfWork = Depends(get_unit_of_work),
+) -> MuscleGroupService:
     return MuscleGroupService(uow)
+
 
 async def get_routine_service(uow: UnitOfWork = Depends(get_unit_of_work)) -> RoutineService:
     return RoutineService(uow)
 
+
 async def get_mesocycle_service(uow: UnitOfWork = Depends(get_unit_of_work)) -> MesocycleService:
     return MesocycleService(uow)
+
 
 async def get_session_service(uow: UnitOfWork = Depends(get_unit_of_work)) -> SessionService:
     return SessionService(uow)
 
+
 async def get_bodyweight_service(uow: UnitOfWork = Depends(get_unit_of_work)) -> BodyweightService:
     return BodyweightService(uow)
+
 
 async def get_insight_service(uow: UnitOfWork = Depends(get_unit_of_work)) -> InsightService:
     return InsightService(uow)
 
+
 async def get_calendar_service(uow: UnitOfWork = Depends(get_unit_of_work)) -> CalendarService:
     return CalendarService(uow)
+
 
 async def get_backup_service(uow: UnitOfWork = Depends(get_unit_of_work)) -> BackupService:
     from app.config.loader import load_config
     from app.infrastructure.backup.manager import BackupManager
     from app.infrastructure.database.connection import get_engine
+
     return BackupManager(load_config(), get_engine())

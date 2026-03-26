@@ -53,8 +53,9 @@ def map_session_set(s) -> SessionSet:
         actual_weight_kg=s.actual_weight_kg,
         weight_reduction_pct=s.weight_reduction_pct,
         rest_seconds=s.rest_seconds,
-        performed_at=s.performed_at
+        performed_at=s.performed_at,
     )
+
 
 def map_session_exercise(se) -> SessionExercise:
     return SessionExercise(
@@ -64,14 +65,15 @@ def map_session_exercise(se) -> SessionExercise:
             name=se.exercise.name,
             description=se.exercise.description,
             equipment=se.exercise.equipment,
-            muscle_groups=[]
+            muscle_groups=[],
         ),
         order=se.order,
         superset_group=se.superset_group,
         rest_seconds=se.rest_seconds,
         notes=se.notes,
-        sets=[map_session_set(s) for s in se.sets]
+        sets=[map_session_set(s) for s in se.sets],
     )
+
 
 def map_session(s) -> Session:
     return Session(
@@ -83,22 +85,19 @@ def map_session(s) -> Session:
         started_at=s.started_at,
         completed_at=s.completed_at,
         notes=s.notes,
-        exercises=[map_session_exercise(se) for se in s.exercises]
+        exercises=[map_session_exercise(se) for se in s.exercises],
     )
+
 
 @strawberry.type
 class SessionMutation:
     @strawberry.mutation
-    async def create_session(
-        self, 
-        info: Info[Context, None], 
-        input: CreateSessionInput
-    ) -> Session:
+    async def create_session(self, info: Info[Context, None], input: CreateSessionInput) -> Session:
         dto = CreateSessionDTO(
             planned_session_id=input.planned_session_id,
             mesocycle_id=input.mesocycle_id,
             routine_id=input.routine_id,
-            notes=input.notes
+            notes=input.notes,
         )
         s = await info.context.session_service.create_session(dto)
         return map_session(s)
@@ -115,16 +114,13 @@ class SessionMutation:
 
     @strawberry.mutation
     async def update_session(
-        self, 
-        info: Info[Context, None], 
-        id: UUID, 
-        input: UpdateSessionInput
+        self, info: Info[Context, None], id: UUID, input: UpdateSessionInput
     ) -> Session:
         dto = UpdateSessionDTO(
             started_at=input.started_at,
             completed_at=input.completed_at,
             status=DomainSessionStatus(input.status.value) if input.status else None,
-            notes=input.notes
+            notes=input.notes,
         )
         s = await info.context.session_service.update_session(id, dto)
         return map_session(s)
@@ -135,33 +131,27 @@ class SessionMutation:
 
     @strawberry.mutation
     async def add_session_exercise(
-        self, 
-        info: Info[Context, None], 
-        session_id: UUID, 
-        input: AddSessionExerciseInput
+        self, info: Info[Context, None], session_id: UUID, input: AddSessionExerciseInput
     ) -> Session:
         dto = AddSessionExerciseDTO(
             exercise_id=input.exercise_id,
             order=input.order,
             superset_group=input.superset_group,
             rest_seconds=input.rest_seconds,
-            notes=input.notes
+            notes=input.notes,
         )
         s = await info.context.session_service.add_exercise(session_id, dto)
         return map_session(s)
 
     @strawberry.mutation
     async def update_session_exercise(
-        self, 
-        info: Info[Context, None], 
-        id: UUID, 
-        input: UpdateSessionExerciseInput
+        self, info: Info[Context, None], id: UUID, input: UpdateSessionExerciseInput
     ) -> SessionExercise:
         dto = UpdateSessionExerciseDTO(
             order=input.order,
             superset_group=input.superset_group,
             rest_seconds=input.rest_seconds,
-            notes=input.notes
+            notes=input.notes,
         )
         se = await info.context.session_service.update_exercise(id, dto)
         return map_session_exercise(se)
@@ -172,10 +162,7 @@ class SessionMutation:
 
     @strawberry.mutation
     async def add_session_set(
-        self, 
-        info: Info[Context, None], 
-        session_exercise_id: UUID, 
-        input: AddSessionSetInput
+        self, info: Info[Context, None], session_exercise_id: UUID, input: AddSessionSetInput
     ) -> SessionExercise:
         dto = AddSessionSetDTO(
             set_number=input.set_number,
@@ -184,17 +171,14 @@ class SessionMutation:
             target_rir=input.target_rir,
             target_weight_kg=input.target_weight_kg,
             weight_reduction_pct=input.weight_reduction_pct,
-            rest_seconds=input.rest_seconds
+            rest_seconds=input.rest_seconds,
         )
         se = await info.context.session_service.add_set(session_exercise_id, dto)
         return map_session_exercise(se)
 
     @strawberry.mutation
     async def update_session_set(
-        self, 
-        info: Info[Context, None], 
-        id: UUID, 
-        input: UpdateSessionSetInput
+        self, info: Info[Context, None], id: UUID, input: UpdateSessionSetInput
     ) -> SessionSet:
         dto = UpdateSessionSetDTO(
             set_number=input.set_number,
@@ -203,7 +187,7 @@ class SessionMutation:
             target_rir=input.target_rir,
             target_weight_kg=input.target_weight_kg,
             weight_reduction_pct=input.weight_reduction_pct,
-            rest_seconds=input.rest_seconds
+            rest_seconds=input.rest_seconds,
         )
         sset = await info.context.session_service.update_set(id, dto)
         return map_session_set(sset)
@@ -214,16 +198,13 @@ class SessionMutation:
 
     @strawberry.mutation
     async def log_set_result(
-        self, 
-        info: Info[Context, None], 
-        set_id: UUID, 
-        input: LogSetResultInput
+        self, info: Info[Context, None], set_id: UUID, input: LogSetResultInput
     ) -> SessionSet:
         dto = LogSetResultDTO(
             actual_reps=input.actual_reps,
             actual_rir=input.actual_rir,
             actual_weight_kg=input.actual_weight_kg,
-            performed_at=input.performed_at
+            performed_at=input.performed_at,
         )
         sset = await info.context.session_service.log_set_result(set_id, dto)
         return map_session_set(sset)

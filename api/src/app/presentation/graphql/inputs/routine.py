@@ -11,10 +11,12 @@ class CreateRoutineInput:
     name: str
     description: str | None = None
 
+
 @strawberry.input
 class UpdateRoutineInput:
     name: str | None = None
     description: str | None = None
+
 
 @strawberry.input
 class AddRoutineExerciseInput:
@@ -24,12 +26,14 @@ class AddRoutineExerciseInput:
     rest_seconds: int | None = None
     notes: str | None = None
 
+
 @strawberry.input
 class UpdateRoutineExerciseInput:
     order: int | None = None
     superset_group: int | None = None
     rest_seconds: int | None = None
     notes: str | None = None
+
 
 @strawberry.input
 class AddRoutineSetInput:
@@ -41,6 +45,7 @@ class AddRoutineSetInput:
     target_weight_kg: Decimal | None = None
     weight_reduction_pct: Decimal | None = None
     rest_seconds: int | None = None
+
 
 @strawberry.input
 class UpdateRoutineSetInput:

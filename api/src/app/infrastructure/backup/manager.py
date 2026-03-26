@@ -11,6 +11,7 @@ from app.config.schema import Config
 
 logger = structlog.get_logger(__name__)
 
+
 class BackupManager(BackupService):
     def __init__(self, config: Config, engine: AsyncEngine) -> None:
         self.config = config
@@ -42,7 +43,7 @@ class BackupManager(BackupService):
             # and works if there are no active writes.
             # In a production-grade app, we'd use 'VACUUM INTO' or similar.
             shutil.copy2(db_path, backup_path)
-            
+
             size_bytes = backup_path.stat().st_size
             created_at = datetime.now(UTC)
 
@@ -51,23 +52,17 @@ class BackupManager(BackupService):
             self._rotate_backups()
 
             return BackupResult(
-                success=True,
-                filename=backup_filename,
-                size_bytes=size_bytes,
-                created_at=created_at
+                success=True, filename=backup_filename, size_bytes=size_bytes, created_at=created_at
             )
         except Exception as e:
             logger.exception("backup_failed", error=str(e))
             return BackupResult(success=False, error=str(e))
 
     def _rotate_backups(self) -> None:
-        backups = sorted(
-            [f for f in self.backup_dir.glob("backup_*.db")],
-            key=os.path.getmtime
-        )
+        backups = sorted([f for f in self.backup_dir.glob("backup_*.db")], key=os.path.getmtime)
 
         if len(backups) > self.config.backup.max_backups:
-            to_delete = backups[:-self.config.backup.max_backups]
+            to_delete = backups[: -self.config.backup.max_backups]
             for f in to_delete:
                 f.unlink()
                 logger.info("backup_rotated", filename=f.name)

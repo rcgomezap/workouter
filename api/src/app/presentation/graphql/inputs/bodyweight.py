@@ -10,6 +10,7 @@ class LogBodyweightInput:
     recorded_at: datetime | None = None
     notes: str | None = None
 
+
 @strawberry.input
 class UpdateBodyweightInput:
     weight_kg: Decimal | None = None

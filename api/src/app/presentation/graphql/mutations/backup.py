@@ -13,6 +13,7 @@ class BackupResult:
     size_bytes: int | None
     created_at: datetime
 
+
 @strawberry.type
 class BackupMutation:
     @strawberry.mutation
@@ -22,5 +23,5 @@ class BackupMutation:
             success=res.success,
             filename=res.filename,
             size_bytes=res.size_bytes,
-            created_at=res.created_at
+            created_at=res.created_at,
         )

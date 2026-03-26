@@ -11,11 +11,13 @@ class CreateExerciseInput:
     description: str | None = None
     equipment: str | None = None
 
+
 @strawberry.input
 class UpdateExerciseInput:
     name: str | None = None
     description: str | None = None
     equipment: str | None = None
+
 
 @strawberry.input
 class MuscleGroupAssignmentInput:

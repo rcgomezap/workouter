@@ -15,6 +15,7 @@ class PlannedSession:
     date: date
     notes: str | None
 
+
 @strawberry.type
 class MesocycleWeek:
     id: UUID
@@ -23,6 +24,7 @@ class MesocycleWeek:
     start_date: date
     end_date: date
     planned_sessions: list[PlannedSession]
+
 
 @strawberry.type
 class Mesocycle:
@@ -33,6 +35,7 @@ class Mesocycle:
     end_date: date | None
     status: MesocycleStatus
     weeks: list[MesocycleWeek]
+
 
 @strawberry.type
 class PaginatedMesocycles:

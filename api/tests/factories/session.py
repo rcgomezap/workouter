@@ -22,6 +22,7 @@ class SessionFactory(factory.Factory):
     created_at = factory.LazyFunction(lambda: datetime.now(UTC))
     updated_at = factory.LazyFunction(lambda: datetime.now(UTC))
 
+
 class SessionExerciseFactory(factory.Factory):
     class Meta:
         model = SessionExercise
@@ -33,6 +34,7 @@ class SessionExerciseFactory(factory.Factory):
     superset_group = None
     rest_seconds = 60
     notes = None
+
 
 class SessionSetFactory(factory.Factory):
     class Meta:

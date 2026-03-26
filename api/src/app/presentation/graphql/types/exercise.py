@@ -10,10 +10,12 @@ class MuscleGroup:
     id: UUID
     name: str
 
+
 @strawberry.type
 class ExerciseMuscleGroup:
     muscle_group: MuscleGroup
     role: MuscleRole
+
 
 @strawberry.type
 class Exercise:
@@ -22,6 +24,7 @@ class Exercise:
     description: str | None
     equipment: str | None
     muscle_groups: list[ExerciseMuscleGroup]
+
 
 @strawberry.type
 class PaginatedExercises:

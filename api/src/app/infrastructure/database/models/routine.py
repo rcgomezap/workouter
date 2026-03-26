@@ -21,7 +21,9 @@ class RoutineTable(Base, UUIDMixin, TimestampMixin):
 
     # Relationships
     routine_exercises: Mapped[list["RoutineExerciseTable"]] = relationship(
-        back_populates="routine", cascade="all, delete-orphan", order_by="RoutineExerciseTable.order"
+        back_populates="routine",
+        cascade="all, delete-orphan",
+        order_by="RoutineExerciseTable.order",
     )
     planned_sessions: Mapped[list["PlannedSessionTable"]] = relationship(back_populates="routine")
     sessions: Mapped[list["SessionTable"]] = relationship(back_populates="routine")
@@ -31,7 +33,9 @@ class RoutineExerciseTable(Base, UUIDMixin):
     __tablename__ = "routine_exercise"
     __table_args__ = (UniqueConstraint("routine_id", "order"),)
 
-    routine_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("routine.id", ondelete="CASCADE"), nullable=False)
+    routine_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("routine.id", ondelete="CASCADE"), nullable=False
+    )
     exercise_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("exercise.id"), nullable=False)
     order: Mapped[int] = mapped_column(Integer, nullable=False)
     superset_group: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -42,7 +46,9 @@ class RoutineExerciseTable(Base, UUIDMixin):
     routine: Mapped[RoutineTable] = relationship(back_populates="routine_exercises")
     exercise: Mapped["ExerciseTable"] = relationship(back_populates="routine_exercises")
     routine_sets: Mapped[list["RoutineSetTable"]] = relationship(
-        back_populates="routine_exercise", cascade="all, delete-orphan", order_by="RoutineSetTable.set_number"
+        back_populates="routine_exercise",
+        cascade="all, delete-orphan",
+        order_by="RoutineSetTable.set_number",
     )
 
 
@@ -50,9 +56,13 @@ class RoutineSetTable(Base, UUIDMixin):
     __tablename__ = "routine_set"
     __table_args__ = (UniqueConstraint("routine_exercise_id", "set_number"),)
 
-    routine_exercise_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("routine_exercise.id", ondelete="CASCADE"), nullable=False)
+    routine_exercise_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("routine_exercise.id", ondelete="CASCADE"), nullable=False
+    )
     set_number: Mapped[int] = mapped_column(Integer, nullable=False)
-    set_type: Mapped[SetType] = mapped_column(Enum(SetType), nullable=False, default=SetType.STANDARD)
+    set_type: Mapped[SetType] = mapped_column(
+        Enum(SetType), nullable=False, default=SetType.STANDARD
+    )
     target_reps_min: Mapped[int | None] = mapped_column(Integer, nullable=True)
     target_reps_max: Mapped[int | None] = mapped_column(Integer, nullable=True)
     target_rir: Mapped[int | None] = mapped_column(Integer, nullable=True)

@@ -13,6 +13,7 @@ class BodyweightLog:
     notes: str | None
     created_at: datetime
 
+
 @strawberry.type
 class PaginatedBodyweightLogs:
     items: list[BodyweightLog]

@@ -6,6 +6,7 @@ from app.infrastructure.backup.manager import BackupManager
 
 logger = structlog.get_logger(__name__)
 
+
 class BackupScheduler:
     def __init__(self, manager: BackupManager) -> None:
         self.manager = manager
@@ -17,14 +18,14 @@ class BackupScheduler:
             return
 
         frequency_hours = self.manager.config.backup.scheduled.frequency_hours
-        
+
         self.scheduler.add_job(
             self.manager.trigger_backup,
             trigger=IntervalTrigger(hours=frequency_hours),
             id="backup_job",
-            replace_existing=True
+            replace_existing=True,
         )
-        
+
         self.scheduler.start()
         logger.info("scheduled_backups_started", frequency_hours=frequency_hours)
 

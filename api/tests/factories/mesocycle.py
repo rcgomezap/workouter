@@ -19,6 +19,7 @@ class MesocycleFactory(factory.Factory):
     created_at = factory.LazyFunction(lambda: datetime.now(UTC))
     updated_at = factory.LazyFunction(lambda: datetime.now(UTC))
 
+
 class MesocycleWeekFactory(factory.Factory):
     class Meta:
         model = MesocycleWeek
@@ -29,6 +30,7 @@ class MesocycleWeekFactory(factory.Factory):
     week_type = WeekType.TRAINING
     start_date = factory.LazyFunction(lambda: date.today())
     end_date = factory.LazyFunction(lambda: date.today() + timedelta(days=6))
+
 
 class PlannedSessionFactory(factory.Factory):
     class Meta:

@@ -14,6 +14,7 @@ class MuscleGroupFactory(factory.Factory):
     id = factory.LazyFunction(uuid.uuid4)
     name = factory.Sequence(lambda n: f"Muscle Group {n}")
 
+
 class ExerciseFactory(factory.Factory):
     class Meta:
         model = Exercise

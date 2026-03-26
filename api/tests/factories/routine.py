@@ -17,6 +17,7 @@ class RoutineFactory(factory.Factory):
     created_at = factory.LazyFunction(lambda: datetime.now(UTC))
     updated_at = factory.LazyFunction(lambda: datetime.now(UTC))
 
+
 class RoutineExerciseFactory(factory.Factory):
     class Meta:
         model = RoutineExercise
@@ -28,6 +29,7 @@ class RoutineExerciseFactory(factory.Factory):
     superset_group = None
     rest_seconds = 60
     notes = None
+
 
 class RoutineSetFactory(factory.Factory):
     class Meta:

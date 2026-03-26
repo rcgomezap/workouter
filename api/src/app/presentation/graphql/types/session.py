@@ -23,6 +23,7 @@ class SessionSet:
     rest_seconds: int | None
     performed_at: datetime | None
 
+
 @strawberry.type
 class SessionExercise:
     id: UUID
@@ -32,6 +33,7 @@ class SessionExercise:
     rest_seconds: int | None
     notes: str | None
     sets: list[SessionSet]
+
 
 @strawberry.type
 class Session:
@@ -44,6 +46,7 @@ class Session:
     completed_at: datetime | None
     notes: str | None
     exercises: list[SessionExercise]
+
 
 @strawberry.type
 class PaginatedSessions:
