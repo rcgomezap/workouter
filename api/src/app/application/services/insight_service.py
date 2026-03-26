@@ -95,15 +95,23 @@ class InsightService:
                 muscle_group_breakdown=muscle_group_breakdown,
             )
 
-    async def get_exercise_history(self, exercise_id: UUID, pagination: PaginationInput):
+    async def get_exercise_history(
+        self,
+        exercise_id: UUID,
+        pagination: PaginationInput,
+        routine_id: UUID | None = None,
+    ):
         async with self.uow:
             offset = (pagination.page - 1) * pagination.page_size
             items = await self.uow.session_repository.list_by_filters(
                 exercise_id=exercise_id,
+                routine_id=routine_id,
                 offset=offset,
                 limit=pagination.page_size,
             )
-            total = await self.uow.session_repository.count_by_filters(exercise_id=exercise_id)
+            total = await self.uow.session_repository.count_by_filters(
+                exercise_id=exercise_id, routine_id=routine_id
+            )
 
             total_pages = (
                 (total + pagination.page_size - 1) // pagination.page_size if total > 0 else 0

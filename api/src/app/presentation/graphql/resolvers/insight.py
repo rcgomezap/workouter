@@ -90,13 +90,16 @@ class InsightQuery:
         self,
         info: Info[Context, None],
         exercise_id: UUID,
+        routine_id: UUID | None = None,
         pagination: PaginationInput | None = None,
     ) -> PaginatedSessions:
         p_dto = PaginationDTO(
             page=pagination.page if pagination else 1,
             page_size=pagination.page_size if pagination else 20,
         )
-        result = await info.context.insight_service.get_exercise_history(exercise_id, p_dto)
+        result = await info.context.insight_service.get_exercise_history(
+            exercise_id, p_dto, routine_id=routine_id
+        )
         return PaginatedSessions(
             items=[
                 Session(
