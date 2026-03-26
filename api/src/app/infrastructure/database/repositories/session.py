@@ -144,6 +144,76 @@ class SQLAlchemySessionRepository(
         result = await self._session.execute(stmt)
         return [self._to_domain(row) for row in result.scalars().all()]
 
+    async def get_exercise_by_id(self, exercise_id: UUID) -> SessionExercise | None:
+        stmt = (
+            select(SessionExerciseTable)
+            .where(SessionExerciseTable.id == exercise_id)
+            .options(
+                selectinload(SessionExerciseTable.session_sets),
+                selectinload(SessionExerciseTable.exercise).selectinload(
+                    ExerciseTable.muscle_groups
+                ),
+            )
+        )
+        result = await self._session.execute(stmt)
+        model_obj = result.scalar_one_or_none()
+        if model_obj:
+            return self._to_exercise_domain(model_obj)
+        return None
+
+    async def add_exercise(
+        self, session_id: UUID, session_exercise: SessionExercise
+    ) -> SessionExercise:
+        model = SessionExerciseTable(
+            id=session_exercise.id,
+            session_id=session_id,
+            exercise_id=session_exercise.exercise.id,
+            order=session_exercise.order,
+            superset_group=session_exercise.superset_group,
+            rest_seconds=session_exercise.rest_seconds,
+            notes=session_exercise.notes,
+        )
+        self._session.add(model)
+        await self._session.flush()
+
+        # Return input for now, assuming success.
+        # In a real scenario we might want to re-fetch to ensure DB state matches,
+        # but here we trust the input entity structure.
+        return session_exercise
+
+    async def update_exercise(self, session_exercise: SessionExercise) -> SessionExercise:
+        stmt = (
+            select(SessionExerciseTable)
+            .where(SessionExerciseTable.id == session_exercise.id)
+            .options(
+                selectinload(SessionExerciseTable.session_sets),
+                selectinload(SessionExerciseTable.exercise).selectinload(
+                    ExerciseTable.muscle_groups
+                ),
+            )
+        )
+        result = await self._session.execute(stmt)
+        model_obj = result.scalar_one_or_none()
+
+        if not model_obj:
+            raise ValueError(f"SessionExercise with id {session_exercise.id} not found")
+
+        model_obj.order = session_exercise.order
+        model_obj.superset_group = session_exercise.superset_group
+        model_obj.rest_seconds = session_exercise.rest_seconds
+        model_obj.notes = session_exercise.notes
+
+        await self._session.flush()
+        return self._to_exercise_domain(model_obj)
+
+    async def delete_exercise(self, exercise_id: UUID) -> None:
+        stmt = select(SessionExerciseTable).where(SessionExerciseTable.id == exercise_id)
+        result = await self._session.execute(stmt)
+        model_obj = result.scalar_one_or_none()
+        if model_obj:
+            await self._session.delete(model_obj)
+            await self._session.flush()
+
     def _to_domain(self, model_obj: SessionTable) -> Session:
         exercises = []
         if (
@@ -299,6 +369,32 @@ class SQLAlchemySessionRepository(
         model_obj = result.scalar_one_or_none()
         if model_obj:
             return self._to_set_domain(model_obj)
+        return None
+
+    async def add_set(self, session_exercise_id: UUID, session_set: SessionSet) -> SessionSet:
+        model = SessionSetTable(
+            id=session_set.id,
+            session_exercise_id=session_exercise_id,
+            set_number=session_set.set_number,
+            set_type=session_set.set_type,
+            target_reps=session_set.target_reps,
+            target_rir=session_set.target_rir,
+            target_weight_kg=session_set.target_weight_kg,
+            weight_reduction_pct=session_set.weight_reduction_pct,
+            rest_seconds=session_set.rest_seconds,
+            performed_at=session_set.performed_at,
+        )
+        self._session.add(model)
+        await self._session.flush()
+        return session_set
+
+    async def delete_set(self, set_id: UUID) -> None:
+        stmt = select(SessionSetTable).where(SessionSetTable.id == set_id)
+        result = await self._session.execute(stmt)
+        model_obj = result.scalar_one_or_none()
+        if model_obj:
+            await self._session.delete(model_obj)
+            await self._session.flush()
         return None
 
     async def update_set(self, session_set: SessionSet) -> SessionSet:

@@ -204,6 +204,187 @@ class SessionService:
             await self.uow.commit()
             return self._map_set_to_dto(session_set)
 
+    async def add_exercise(self, session_id: UUID, input: AddSessionExerciseInput) -> SessionDTO:
+        async with self.uow:
+            session = await self.uow.session_repository.get_by_id(session_id)
+            if not session:
+                raise EntityNotFoundException("Session", session_id)
+
+            exercise = await self.uow.exercise_repository.get_by_id(input.exercise_id)
+            if not exercise:
+                raise EntityNotFoundException("Exercise", input.exercise_id)
+
+            session_exercise = SessionExercise(
+                exercise=exercise,
+                order=input.order,
+                superset_group=input.superset_group,
+                rest_seconds=input.rest_seconds,
+                notes=input.notes,
+                sets=[],
+            )
+
+            await self.uow.session_repository.add_exercise(session_id, session_exercise)
+            await self.uow.commit()
+
+            # Re-fetch session to include new exercise in the list
+            session = await self.uow.session_repository.get_by_id(session_id)
+            return self._map_to_dto(session)
+
+    async def update_exercise(
+        self, id: UUID, input: UpdateSessionExerciseInput
+    ) -> SessionExerciseDTO:
+        async with self.uow:
+            session_exercise = await self.uow.session_repository.get_exercise_by_id(id)
+            if not session_exercise:
+                raise EntityNotFoundException("SessionExercise", id)
+
+            if input.order is not None:
+                session_exercise.order = input.order
+            if input.superset_group is not None:
+                session_exercise.superset_group = input.superset_group
+            if input.rest_seconds is not None:
+                session_exercise.rest_seconds = input.rest_seconds
+            if input.notes is not None:
+                session_exercise.notes = input.notes
+
+            updated_se = await self.uow.session_repository.update_exercise(session_exercise)
+            await self.uow.commit()
+
+            # The repository method might not return fully loaded relationships needed for DTO
+            # Safe to re-fetch or trust repository implementation
+            # Given my repository implementation, it calls _to_exercise_domain but relies on loaded relationships.
+            # Let's trust it returns a valid domain object.
+
+            # However, we need to map to DTO. _map_to_dto handles full session.
+            # We need a method to map single exercise.
+            # _map_to_dto does it inline. I should extract _map_exercise_to_dto if possible,
+            # or just copy the logic. I'll duplicate logic inside _map_to_dto for now to be safe and quick.
+
+            return SessionExerciseDTO(
+                id=updated_se.id,
+                exercise=ExerciseDTO(
+                    id=updated_se.exercise.id,
+                    name=updated_se.exercise.name,
+                    description=updated_se.exercise.description,
+                    equipment=updated_se.exercise.equipment,
+                    muscle_groups=[
+                        ExerciseMuscleGroupDTO(
+                            muscle_group=MuscleGroupDTO(
+                                id=mg.muscle_group.id, name=mg.muscle_group.name
+                            ),
+                            role=mg.role,
+                        )
+                        for mg in updated_se.exercise.muscle_groups
+                    ],
+                ),
+                order=updated_se.order,
+                superset_group=updated_se.superset_group,
+                rest_seconds=updated_se.rest_seconds,
+                notes=updated_se.notes,
+                sets=[self._map_set_to_dto(ss) for ss in updated_se.sets],
+            )
+
+    async def remove_exercise(self, id: UUID) -> bool:
+        async with self.uow:
+            # Check existence first? Or let repo handle it?
+            # Repo returns None if not found, but delete returns None.
+            # Better check.
+            se = await self.uow.session_repository.get_exercise_by_id(id)
+            if not se:
+                raise EntityNotFoundException("SessionExercise", id)
+
+            await self.uow.session_repository.delete_exercise(id)
+            await self.uow.commit()
+            return True
+
+    async def add_set(
+        self, session_exercise_id: UUID, input: AddSessionSetInput
+    ) -> SessionExerciseDTO:
+        async with self.uow:
+            session_exercise = await self.uow.session_repository.get_exercise_by_id(
+                session_exercise_id
+            )
+            if not session_exercise:
+                raise EntityNotFoundException("SessionExercise", session_exercise_id)
+
+            session_set = SessionSet(
+                set_number=input.set_number,
+                set_type=input.set_type,
+                target_reps=input.target_reps,
+                target_rir=input.target_rir,
+                target_weight_kg=input.target_weight_kg,
+                weight_reduction_pct=input.weight_reduction_pct,
+                rest_seconds=input.rest_seconds,
+            )
+
+            await self.uow.session_repository.add_set(session_exercise_id, session_set)
+            await self.uow.commit()
+
+            # Re-fetch exercise to get updated list of sets
+            session_exercise = await self.uow.session_repository.get_exercise_by_id(
+                session_exercise_id
+            )
+
+            # Map to DTO
+            return SessionExerciseDTO(
+                id=session_exercise.id,
+                exercise=ExerciseDTO(
+                    id=session_exercise.exercise.id,
+                    name=session_exercise.exercise.name,
+                    description=session_exercise.exercise.description,
+                    equipment=session_exercise.exercise.equipment,
+                    muscle_groups=[
+                        ExerciseMuscleGroupDTO(
+                            muscle_group=MuscleGroupDTO(
+                                id=mg.muscle_group.id, name=mg.muscle_group.name
+                            ),
+                            role=mg.role,
+                        )
+                        for mg in session_exercise.exercise.muscle_groups
+                    ],
+                ),
+                order=session_exercise.order,
+                superset_group=session_exercise.superset_group,
+                rest_seconds=session_exercise.rest_seconds,
+                notes=session_exercise.notes,
+                sets=[self._map_set_to_dto(ss) for ss in session_exercise.sets],
+            )
+
+    async def update_set(self, id: UUID, input: UpdateSessionSetInput) -> SessionSetDTO:
+        async with self.uow:
+            session_set = await self.uow.session_repository.get_set_by_id(id)
+            if not session_set:
+                raise EntityNotFoundException("SessionSet", id)
+
+            if input.set_number is not None:
+                session_set.set_number = input.set_number
+            if input.set_type is not None:
+                session_set.set_type = input.set_type
+            if input.target_reps is not None:
+                session_set.target_reps = input.target_reps
+            if input.target_rir is not None:
+                session_set.target_rir = input.target_rir
+            if input.target_weight_kg is not None:
+                session_set.target_weight_kg = input.target_weight_kg
+            if input.weight_reduction_pct is not None:
+                session_set.weight_reduction_pct = input.weight_reduction_pct
+            if input.rest_seconds is not None:
+                session_set.rest_seconds = input.rest_seconds
+
+            updated_set = await self.uow.session_repository.update_set(session_set)
+            await self.uow.commit()
+            return self._map_set_to_dto(updated_set)
+
+    async def remove_set(self, id: UUID) -> bool:
+        async with self.uow:
+            s = await self.uow.session_repository.get_set_by_id(id)
+            if not s:
+                raise EntityNotFoundException("SessionSet", id)
+
+            await self.uow.session_repository.delete_set(id)
+            await self.uow.commit()
+            return True
+
     def _map_to_dto(self, session: Session) -> SessionDTO:
         return SessionDTO(
             id=session.id,

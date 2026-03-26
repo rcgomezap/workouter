@@ -4,8 +4,10 @@ from datetime import datetime, date, timedelta, UTC
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.entities.session import Session
-from app.domain.enums import SessionStatus
+from app.domain.entities.mesocycle import Mesocycle
+from app.domain.enums import SessionStatus, MesocycleStatus
 from app.infrastructure.database.repositories.session import SQLAlchemySessionRepository
+from app.infrastructure.database.repositories.mesocycle import SQLAlchemyMesocycleRepository
 
 
 @pytest.mark.asyncio
@@ -48,9 +50,18 @@ async def test_session_repository_filter_by_status(db_session: AsyncSession):
 @pytest.mark.asyncio
 async def test_session_repository_filter_by_mesocycle(db_session: AsyncSession):
     repo = SQLAlchemySessionRepository(db_session)
+    meso_repo = SQLAlchemyMesocycleRepository(db_session)
 
     meso1_id = uuid4()
     meso2_id = uuid4()
+
+    # Create Mesocycles first
+    today = datetime.now(UTC).date()
+    meso1 = Mesocycle(id=meso1_id, name="M1", start_date=today, status=MesocycleStatus.PLANNED)
+    meso2 = Mesocycle(id=meso2_id, name="M2", start_date=today, status=MesocycleStatus.PLANNED)
+    await meso_repo.add(meso1)
+    await meso_repo.add(meso2)
+    await db_session.commit()
 
     # Create sessions for different mesocycles
     s1 = Session(id=uuid4(), mesocycle_id=meso1_id, status=SessionStatus.PLANNED)
@@ -107,9 +118,22 @@ async def test_session_repository_filter_by_date_range(db_session: AsyncSession)
 @pytest.mark.asyncio
 async def test_session_repository_combined_filters(db_session: AsyncSession):
     repo = SQLAlchemySessionRepository(db_session)
+    meso_repo = SQLAlchemyMesocycleRepository(db_session)
 
     meso_id = uuid4()
+    other_meso_id = uuid4()
+
+    # Create Mesocycles first
     today = datetime.now(UTC)
+    meso1 = Mesocycle(
+        id=meso_id, name="M1", start_date=today.date(), status=MesocycleStatus.PLANNED
+    )
+    meso2 = Mesocycle(
+        id=other_meso_id, name="M2", start_date=today.date(), status=MesocycleStatus.PLANNED
+    )
+    await meso_repo.add(meso1)
+    await meso_repo.add(meso2)
+    await db_session.commit()
 
     # Target session
     s1 = Session(id=uuid4(), mesocycle_id=meso_id, status=SessionStatus.COMPLETED, started_at=today)
@@ -125,7 +149,7 @@ async def test_session_repository_combined_filters(db_session: AsyncSession):
     # Wrong mesocycle
     s3 = Session(
         id=uuid4(),
-        mesocycle_id=uuid4(),  # Wrong meso
+        mesocycle_id=other_meso_id,  # Wrong meso
         status=SessionStatus.COMPLETED,
         started_at=today,
     )

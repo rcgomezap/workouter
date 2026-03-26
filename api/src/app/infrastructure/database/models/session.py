@@ -21,7 +21,9 @@ class PlannedSessionTable(Base, UUIDMixin):
     mesocycle_week_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("mesocycle_week.id", ondelete="CASCADE"), nullable=False
     )
-    routine_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("routine.id"), nullable=True)
+    routine_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("routine.id", ondelete="SET NULL"), nullable=True
+    )
     day_of_week: Mapped[int] = mapped_column(Integer, nullable=False)
     date: Mapped[date] = mapped_column(Date, nullable=False)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -38,8 +40,12 @@ class SessionTable(Base, UUIDMixin, TimestampMixin):
     planned_session_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("planned_session.id"), nullable=True
     )
-    mesocycle_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("mesocycle.id"), nullable=True)
-    routine_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("routine.id"), nullable=True)
+    mesocycle_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("mesocycle.id"), nullable=True
+    )
+    routine_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("routine.id", ondelete="SET NULL"), nullable=True
+    )
     status: Mapped[SessionStatus] = mapped_column(
         Enum(SessionStatus), nullable=False, default=SessionStatus.PLANNED
     )
@@ -52,7 +58,9 @@ class SessionTable(Base, UUIDMixin, TimestampMixin):
     mesocycle: Mapped["MesocycleTable | None"] = relationship(back_populates="sessions")
     routine: Mapped["RoutineTable | None"] = relationship(back_populates="sessions")
     session_exercises: Mapped[list["SessionExerciseTable"]] = relationship(
-        back_populates="session", cascade="all, delete-orphan", order_by="SessionExerciseTable.order"
+        back_populates="session",
+        cascade="all, delete-orphan",
+        order_by="SessionExerciseTable.order",
     )
 
 
@@ -60,7 +68,9 @@ class SessionExerciseTable(Base, UUIDMixin):
     __tablename__ = "session_exercise"
     __table_args__ = (UniqueConstraint("session_id", "order"),)
 
-    session_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("session.id", ondelete="CASCADE"), nullable=False)
+    session_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("session.id", ondelete="CASCADE"), nullable=False
+    )
     exercise_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("exercise.id"), nullable=False)
     order: Mapped[int] = mapped_column(Integer, nullable=False)
     superset_group: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -71,7 +81,9 @@ class SessionExerciseTable(Base, UUIDMixin):
     session: Mapped[SessionTable] = relationship(back_populates="session_exercises")
     exercise: Mapped["ExerciseTable"] = relationship(back_populates="session_exercises")
     session_sets: Mapped[list["SessionSetTable"]] = relationship(
-        back_populates="session_exercise", cascade="all, delete-orphan", order_by="SessionSetTable.set_number"
+        back_populates="session_exercise",
+        cascade="all, delete-orphan",
+        order_by="SessionSetTable.set_number",
     )
 
 

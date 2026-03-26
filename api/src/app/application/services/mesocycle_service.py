@@ -1,5 +1,5 @@
 from uuid import UUID
-from datetime import date
+from datetime import date, timedelta
 from app.application.interfaces.unit_of_work import UnitOfWork
 from app.application.dto.mesocycle import (
     MesocycleDTO,
@@ -167,11 +167,16 @@ class MesocycleService:
                 if not routine:
                     raise EntityNotFoundException("Routine", input.routine_id)
 
+            session_date = input.date
+            if not session_date:
+                # Calculate from week start date and day_of_week (1-based index)
+                session_date = week.start_date + timedelta(days=input.day_of_week - 1)
+
             ps = PlannedSession(
                 mesocycle_week_id=mesocycle_week_id,
                 routine=routine,
                 day_of_week=input.day_of_week,
-                date=input.date or date.today(),  # Fallback
+                date=session_date,
                 notes=input.notes,
             )
             week.planned_sessions.append(ps)

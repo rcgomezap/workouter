@@ -2,6 +2,7 @@ import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy import event
 from sqlalchemy.pool import StaticPool
 from app.main import create_app
 from app.infrastructure.database.models.base import Base
@@ -18,14 +19,18 @@ def anyio_backend():
 @pytest_asyncio.fixture(scope="function")
 async def test_engine(anyio_backend):
     config = get_config()
-    # Use memory database
-    db_url = "sqlite+aiosqlite:///:memory:"
     engine = create_async_engine(
-        db_url,
+        "sqlite+aiosqlite:///:memory:",
         echo=True,
         poolclass=StaticPool,
         connect_args={"check_same_thread": False},
     )
+
+    @event.listens_for(engine.sync_engine, "connect")
+    def set_sqlite_pragma(dbapi_connection, connection_record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
     # Manually initialize the global engine/session factory in the app's connection module
     print(f"DEBUG: Setting connection._engine to {id(engine)}")

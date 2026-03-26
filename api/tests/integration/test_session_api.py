@@ -3,8 +3,10 @@ from uuid import uuid4
 from datetime import datetime, timedelta, UTC
 
 from app.domain.entities.session import Session
-from app.domain.enums import SessionStatus
+from app.domain.entities.mesocycle import Mesocycle
+from app.domain.enums import SessionStatus, MesocycleStatus
 from app.infrastructure.database.repositories.session import SQLAlchemySessionRepository
+from app.infrastructure.database.repositories.mesocycle import SQLAlchemyMesocycleRepository
 
 
 @pytest.mark.asyncio
@@ -53,9 +55,18 @@ async def test_sessions_filter_by_status(client, auth_headers, db_session):
 @pytest.mark.asyncio
 async def test_sessions_filter_by_mesocycle(client, auth_headers, db_session):
     repo = SQLAlchemySessionRepository(db_session)
+    meso_repo = SQLAlchemyMesocycleRepository(db_session)
 
     meso1_id = uuid4()
     meso2_id = uuid4()
+
+    # Create Mesocycles first
+    today = datetime.now(UTC).date()
+    meso1 = Mesocycle(id=meso1_id, name="M1", start_date=today, status=MesocycleStatus.PLANNED)
+    meso2 = Mesocycle(id=meso2_id, name="M2", start_date=today, status=MesocycleStatus.PLANNED)
+    await meso_repo.add(meso1)
+    await meso_repo.add(meso2)
+    await db_session.commit()
 
     s1 = Session(id=uuid4(), mesocycle_id=meso1_id, status=SessionStatus.PLANNED)
     s2 = Session(id=uuid4(), mesocycle_id=meso2_id, status=SessionStatus.PLANNED)
