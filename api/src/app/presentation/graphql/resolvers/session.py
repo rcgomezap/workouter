@@ -1,18 +1,20 @@
-import strawberry
-from uuid import UUID
 from datetime import date
+from uuid import UUID
+
+import strawberry
 from strawberry.types import Info
+
+from app.application.dto.pagination import PaginationInput as PaginationDTO
 from app.presentation.graphql.context import Context
+from app.presentation.graphql.inputs.pagination import PaginationInput
+from app.presentation.graphql.resolvers.exercise import map_exercise
+from app.presentation.graphql.types.enums import SessionStatus
 from app.presentation.graphql.types.session import (
+    PaginatedSessions,
     Session,
     SessionExercise,
     SessionSet,
-    PaginatedSessions,
 )
-from app.presentation.graphql.types.enums import SessionStatus
-from app.presentation.graphql.inputs.pagination import PaginationInput
-from app.application.dto.pagination import PaginationInput as PaginationDTO
-from app.presentation.graphql.resolvers.exercise import map_exercise
 
 
 def map_session_set(s) -> SessionSet:

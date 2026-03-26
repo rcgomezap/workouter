@@ -1,14 +1,15 @@
-from uuid import UUID
 from datetime import date
+
 from pydantic import BaseModel
-from app.application.interfaces.unit_of_work import UnitOfWork
-from app.application.dto.mesocycle import PlannedSessionDTO, MesocycleDTO, MesocycleWeekDTO
-from app.application.dto.session import SessionDTO, SessionExerciseDTO, SessionSetDTO
+
+from app.application.dto.exercise import ExerciseDTO, ExerciseMuscleGroupDTO, MuscleGroupDTO
+from app.application.dto.mesocycle import PlannedSessionDTO
 from app.application.dto.routine import RoutineDTO, RoutineExerciseDTO, RoutineSetDTO
-from app.application.dto.exercise import ExerciseDTO, MuscleGroupDTO, ExerciseMuscleGroupDTO
-from app.domain.enums import SessionStatus
+from app.application.dto.session import SessionDTO, SessionExerciseDTO, SessionSetDTO
+from app.application.interfaces.unit_of_work import UnitOfWork
 from app.domain.entities.mesocycle import PlannedSession
 from app.domain.entities.session import Session, SessionSet
+from app.domain.enums import SessionStatus
 
 
 class CalendarDay(BaseModel):

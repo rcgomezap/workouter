@@ -1,21 +1,10 @@
 import asyncio
-from app.config.loader import load_config as get_config
-from app.infrastructure.database.connection import init_database, get_session_factory
-from app.infrastructure.database.models.muscle_group import MuscleGroupTable
-from app.infrastructure.database.models.exercise import ExerciseTable
-from app.infrastructure.database.models.routine import (
-    RoutineTable,
-    RoutineExerciseTable,
-    RoutineSetTable,
-)
-from app.infrastructure.database.models.session import (
-    SessionTable,
-    SessionExerciseTable,
-    SessionSetTable,
-    PlannedSessionTable,
-)
-from app.infrastructure.database.models.mesocycle import MesocycleTable, MesocycleWeekTable
+
 from sqlalchemy import select
+
+from app.config.loader import load_config as get_config
+from app.infrastructure.database.connection import get_session_factory, init_database
+from app.infrastructure.database.models.muscle_group import MuscleGroupTable
 
 MUSCLE_GROUPS = [
     "Chest",

@@ -1,16 +1,18 @@
-import strawberry
 from uuid import UUID
+
+import strawberry
 from strawberry.types import Info
+
+from app.application.dto.pagination import PaginationInput as PaginationDTO
 from app.presentation.graphql.context import Context
+from app.presentation.graphql.inputs.pagination import PaginationInput
+from app.presentation.graphql.types.exercise import Exercise, ExerciseMuscleGroup, MuscleGroup
 from app.presentation.graphql.types.routine import (
+    PaginatedRoutines,
     Routine,
     RoutineExercise,
     RoutineSet,
-    PaginatedRoutines,
 )
-from app.presentation.graphql.types.exercise import Exercise, MuscleGroup, ExerciseMuscleGroup
-from app.presentation.graphql.inputs.pagination import PaginationInput
-from app.application.dto.pagination import PaginationInput as PaginationDTO
 
 
 def map_routine_set(s) -> RoutineSet:

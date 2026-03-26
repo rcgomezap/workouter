@@ -1,15 +1,16 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
 
-from app.application.services.exercise_service import ExerciseService
+import pytest
+
 from app.application.dto.exercise import (
     CreateExerciseInput,
-    UpdateExerciseInput,
     MuscleGroupAssignmentInput,
+    UpdateExerciseInput,
 )
 from app.application.dto.pagination import PaginationInput
-from app.domain.entities.exercise import Exercise, ExerciseMuscleGroup
+from app.application.services.exercise_service import ExerciseService
+from app.domain.entities.exercise import Exercise
 from app.domain.entities.muscle_group import MuscleGroup
 from app.domain.enums import MuscleRole
 from app.domain.exceptions import EntityNotFoundException

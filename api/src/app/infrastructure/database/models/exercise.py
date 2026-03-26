@@ -1,10 +1,10 @@
 from typing import TYPE_CHECKING
-import uuid
-from sqlalchemy import Column, ForeignKey, Table, String, Text, Enum
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.domain.enums import MuscleRole
-from app.infrastructure.database.models.base import Base, UUIDMixin, TimestampMixin
 
+from sqlalchemy import Column, Enum, ForeignKey, String, Table, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.domain.enums import MuscleRole
+from app.infrastructure.database.models.base import Base, TimestampMixin, UUIDMixin
 
 if TYPE_CHECKING:
     from app.infrastructure.database.models.muscle_group import MuscleGroupTable

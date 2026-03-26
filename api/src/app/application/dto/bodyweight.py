@@ -1,8 +1,11 @@
-from uuid import UUID
 from datetime import datetime
 from decimal import Decimal
+from uuid import UUID
+
 from pydantic import BaseModel
+
 from app.application.dto.pagination import PaginatedResult
+
 
 class BodyweightLogDTO(BaseModel):
     id: UUID

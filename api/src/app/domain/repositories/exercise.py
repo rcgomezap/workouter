@@ -1,5 +1,7 @@
-from typing import Protocol, Sequence
+from collections.abc import Sequence
+from typing import Protocol
 from uuid import UUID
+
 from app.domain.entities.exercise import Exercise
 from app.domain.repositories.base import BaseRepository
 

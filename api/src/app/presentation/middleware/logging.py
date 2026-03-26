@@ -1,9 +1,10 @@
-import structlog
 import time
-from typing import Callable
+import uuid
+from collections.abc import Callable
+
+import structlog
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
-import uuid
 
 logger = structlog.get_logger(__name__)
 

@@ -1,11 +1,12 @@
+import uuid
 from datetime import date
 from typing import TYPE_CHECKING
-import uuid
-from sqlalchemy import ForeignKey, String, Text, Integer, Date, Enum, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.domain.enums import MesocycleStatus, WeekType
-from app.infrastructure.database.models.base import Base, UUIDMixin, TimestampMixin
 
+from sqlalchemy import Date, Enum, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.domain.enums import MesocycleStatus, WeekType
+from app.infrastructure.database.models.base import Base, TimestampMixin, UUIDMixin
 
 if TYPE_CHECKING:
     from app.infrastructure.database.models.session import PlannedSessionTable, SessionTable

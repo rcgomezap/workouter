@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Protocol
 
+
 @dataclass
 class BackupResult:
     success: bool

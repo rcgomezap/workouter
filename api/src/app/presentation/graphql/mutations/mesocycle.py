@@ -1,29 +1,40 @@
-import strawberry
 from uuid import UUID
+
+import strawberry
 from strawberry.types import Info
-from app.presentation.graphql.context import Context
-from app.presentation.graphql.types.mesocycle import Mesocycle, MesocycleWeek, PlannedSession
-from app.presentation.graphql.types.routine import Routine
-from app.presentation.graphql.inputs.mesocycle import (
-    CreateMesocycleInput,
-    UpdateMesocycleInput,
-    AddMesocycleWeekInput,
-    UpdateMesocycleWeekInput,
-    AddPlannedSessionInput,
-    UpdatePlannedSessionInput,
+
+from app.application.dto.mesocycle import (
+    AddMesocycleWeekInput as AddMesocycleWeekDTO,
+)
+from app.application.dto.mesocycle import (
+    AddPlannedSessionInput as AddPlannedSessionDTO,
 )
 from app.application.dto.mesocycle import (
     CreateMesocycleInput as CreateMesocycleDTO,
+)
+from app.application.dto.mesocycle import (
     UpdateMesocycleInput as UpdateMesocycleDTO,
-    AddMesocycleWeekInput as AddMesocycleWeekDTO,
+)
+from app.application.dto.mesocycle import (
     UpdateMesocycleWeekInput as UpdateMesocycleWeekDTO,
-    AddPlannedSessionInput as AddPlannedSessionDTO,
+)
+from app.application.dto.mesocycle import (
     UpdatePlannedSessionInput as UpdatePlannedSessionDTO,
 )
-from app.domain.enums import MesocycleStatus as DomainMesocycleStatus, WeekType as DomainWeekType
-
-
+from app.domain.enums import MesocycleStatus as DomainMesocycleStatus
+from app.domain.enums import WeekType as DomainWeekType
+from app.presentation.graphql.context import Context
+from app.presentation.graphql.inputs.mesocycle import (
+    AddMesocycleWeekInput,
+    AddPlannedSessionInput,
+    CreateMesocycleInput,
+    UpdateMesocycleInput,
+    UpdateMesocycleWeekInput,
+    UpdatePlannedSessionInput,
+)
 from app.presentation.graphql.mutations.routine import map_routine_exercise
+from app.presentation.graphql.types.mesocycle import Mesocycle, MesocycleWeek, PlannedSession
+from app.presentation.graphql.types.routine import Routine
 
 
 def map_planned_session(ps) -> PlannedSession:

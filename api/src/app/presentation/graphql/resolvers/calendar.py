@@ -1,10 +1,12 @@
-import strawberry
 from datetime import date
+
+import strawberry
 from strawberry.types import Info
+
 from app.presentation.graphql.context import Context
-from app.presentation.graphql.types.calendar import CalendarDay
 from app.presentation.graphql.resolvers.mesocycle import map_planned_session
 from app.presentation.graphql.resolvers.session import map_session
+from app.presentation.graphql.types.calendar import CalendarDay
 
 
 def map_calendar_day(d) -> CalendarDay:

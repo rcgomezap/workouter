@@ -1,8 +1,10 @@
 import asyncio
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+
 from app.config.loader import load_config
 from app.infrastructure.database.models.muscle_group import MuscleGroupTable
-from sqlalchemy import select
 
 MUSCLE_GROUPS = [
     "Chest", "Back", "Shoulders", "Biceps", "Triceps",

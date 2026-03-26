@@ -1,8 +1,11 @@
-from uuid import UUID
 from datetime import date
+from uuid import UUID
+
 import strawberry
+
 from app.presentation.graphql.types.enums import MesocycleStatus, WeekType
 from app.presentation.graphql.types.routine import Routine
+
 
 @strawberry.type
 class PlannedSession:

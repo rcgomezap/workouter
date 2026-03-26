@@ -1,5 +1,5 @@
 from uuid import UUID
-from datetime import date
+
 import strawberry
 
 

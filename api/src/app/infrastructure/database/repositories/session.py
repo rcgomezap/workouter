@@ -1,18 +1,20 @@
+from collections.abc import Sequence
 from datetime import date, datetime, time
-from typing import Sequence
 from uuid import UUID
-from sqlalchemy import select, func, and_
+
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from app.domain.entities.session import Session, SessionSet, SessionExercise
+
+from app.domain.entities.session import Session, SessionExercise, SessionSet
 from app.domain.enums import SessionStatus
 from app.domain.repositories.session import SessionRepository
+from app.infrastructure.database.models.exercise import ExerciseTable
 from app.infrastructure.database.models.session import (
-    SessionTable,
     SessionExerciseTable,
     SessionSetTable,
+    SessionTable,
 )
-from app.infrastructure.database.models.exercise import ExerciseTable
 from app.infrastructure.database.repositories.base import SQLAlchemyBaseRepository
 
 
@@ -395,7 +397,6 @@ class SQLAlchemySessionRepository(
         if model_obj:
             await self._session.delete(model_obj)
             await self._session.flush()
-        return None
 
     async def update_set(self, session_set: SessionSet) -> SessionSet:
         stmt = select(SessionSetTable).where(SessionSetTable.id == session_set.id)

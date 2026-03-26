@@ -1,8 +1,11 @@
+import uuid
+from datetime import UTC, date, datetime, timedelta
+
 import factory
+
 from app.domain.entities.mesocycle import Mesocycle, MesocycleWeek, PlannedSession
 from app.domain.enums import MesocycleStatus, WeekType
-import uuid
-from datetime import datetime, UTC, date, timedelta
+
 
 class MesocycleFactory(factory.Factory):
     class Meta:

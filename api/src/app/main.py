@@ -1,30 +1,33 @@
-from fastapi import FastAPI, Depends, HTTPException
 from contextlib import asynccontextmanager
+
 import structlog
+from fastapi import Depends, FastAPI, HTTPException
 from strawberry.fastapi import GraphQLRouter
+
 from app.config.loader import load_config as get_config
-from app.infrastructure.database.connection import (
-    init_database,
-    close_database,
-    ping_database as check_db,
-)
-from app.presentation.graphql.schema import schema
-from app.presentation.graphql.context import Context
-from app.presentation.middleware.auth import AuthMiddleware
-from app.presentation.middleware.logging import LoggingMiddleware
-from app.presentation.middleware.error_handler import ErrorHandlerExtension
-from app.infrastructure.backup.scheduler import BackupScheduler
 from app.dependencies import (
+    get_backup_service,
+    get_bodyweight_service,
+    get_calendar_service,
     get_exercise_service,
+    get_insight_service,
+    get_mesocycle_service,
     get_muscle_group_service,
     get_routine_service,
-    get_mesocycle_service,
     get_session_service,
-    get_bodyweight_service,
-    get_insight_service,
-    get_calendar_service,
-    get_backup_service,
 )
+from app.infrastructure.backup.scheduler import BackupScheduler
+from app.infrastructure.database.connection import (
+    close_database,
+    init_database,
+)
+from app.infrastructure.database.connection import (
+    ping_database as check_db,
+)
+from app.presentation.graphql.context import Context
+from app.presentation.graphql.schema import schema
+from app.presentation.middleware.auth import AuthMiddleware
+from app.presentation.middleware.logging import LoggingMiddleware
 
 
 async def get_context(
@@ -72,8 +75,8 @@ def create_app(engine=None, session_factory=None) -> FastAPI:
 
         # SQLite Auto-Initialization
         if config.database.url.startswith("sqlite"):
-            from pathlib import Path
             import subprocess
+            from pathlib import Path
 
             # Extract path from URL (handle sqlite+aiosqlite:///path and sqlite:///path)
             db_path_str = config.database.url.split(":///")[1]
@@ -89,8 +92,8 @@ def create_app(engine=None, session_factory=None) -> FastAPI:
                 # Run migrations via alembic
                 try:
                     logger.info("running_migrations")
-                    import sys
                     import os
+                    import sys
 
                     # Try to find alembic in the same directory as python or in PATH
                     alembic_cmd = "alembic"

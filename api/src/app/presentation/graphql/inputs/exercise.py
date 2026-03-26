@@ -1,6 +1,9 @@
 from uuid import UUID
+
 import strawberry
+
 from app.presentation.graphql.types.enums import MuscleRole
+
 
 @strawberry.input
 class CreateExerciseInput:

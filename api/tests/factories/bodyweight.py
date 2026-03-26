@@ -1,7 +1,10 @@
-import factory
-from app.domain.entities.bodyweight import BodyweightLog
 import uuid
-from datetime import datetime, UTC
+from datetime import UTC, datetime
+
+import factory
+
+from app.domain.entities.bodyweight import BodyweightLog
+
 
 class BodyweightLogFactory(factory.Factory):
     class Meta:

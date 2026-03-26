@@ -1,8 +1,11 @@
+from pathlib import Path
+
 import pytest
 import yaml
-from pathlib import Path
-from app.config.loader import load_config, ConfigError
+
+from app.config.loader import ConfigError, load_config
 from app.config.schema import Config
+
 
 def test_load_example_config(tmp_path):
     # Copy example config to a temp location

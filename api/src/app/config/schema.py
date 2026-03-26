@@ -1,5 +1,5 @@
-from typing import Optional
-from pydantic import BaseModel, Field, AnyHttpUrl, validator, HttpUrl
+
+from pydantic import BaseModel, Field
 
 
 class ServerConfig(BaseModel):
@@ -20,7 +20,7 @@ class AuthConfig(BaseModel):
 class LoggingConfig(BaseModel):
     level: str = Field(default="INFO")
     format: str = Field(default="json")
-    file: Optional[str] = Field(default=None)
+    file: str | None = Field(default=None)
 
 
 class ScheduledBackupConfig(BaseModel):

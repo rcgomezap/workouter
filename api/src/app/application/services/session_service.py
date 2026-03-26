@@ -1,24 +1,24 @@
+from datetime import UTC, date, datetime
 from uuid import UUID
-from datetime import UTC, datetime, date
-from app.application.interfaces.unit_of_work import UnitOfWork
+
+from app.application.dto.exercise import ExerciseDTO, ExerciseMuscleGroupDTO, MuscleGroupDTO
+from app.application.dto.pagination import PaginationInput
 from app.application.dto.session import (
+    AddSessionExerciseInput,
+    AddSessionSetInput,
+    CreateSessionInput,
+    LogSetResultInput,
+    PaginatedSessions,
     SessionDTO,
     SessionExerciseDTO,
     SessionSetDTO,
-    CreateSessionInput,
-    UpdateSessionInput,
-    AddSessionExerciseInput,
     UpdateSessionExerciseInput,
-    AddSessionSetInput,
     UpdateSessionSetInput,
-    LogSetResultInput,
-    PaginatedSessions,
 )
-from app.application.dto.exercise import ExerciseDTO, MuscleGroupDTO, ExerciseMuscleGroupDTO
-from app.application.dto.pagination import PaginationInput
+from app.application.interfaces.unit_of_work import UnitOfWork
 from app.domain.entities.session import Session, SessionExercise, SessionSet
 from app.domain.enums import SessionStatus
-from app.domain.exceptions import EntityNotFoundException, ConflictException
+from app.domain.exceptions import ConflictException, EntityNotFoundException
 
 
 class SessionService:

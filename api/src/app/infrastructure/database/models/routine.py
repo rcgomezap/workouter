@@ -1,11 +1,12 @@
-from typing import TYPE_CHECKING
 import uuid
 from decimal import Decimal
-from sqlalchemy import ForeignKey, String, Text, Integer, Numeric, Enum, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.domain.enums import SetType
-from app.infrastructure.database.models.base import Base, UUIDMixin, TimestampMixin
+from typing import TYPE_CHECKING
 
+from sqlalchemy import Enum, ForeignKey, Integer, Numeric, String, Text, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.domain.enums import SetType
+from app.infrastructure.database.models.base import Base, TimestampMixin, UUIDMixin
 
 if TYPE_CHECKING:
     from app.infrastructure.database.models.exercise import ExerciseTable

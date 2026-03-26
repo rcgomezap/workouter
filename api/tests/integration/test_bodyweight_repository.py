@@ -1,8 +1,10 @@
-import pytest
-from uuid import uuid4
-from datetime import datetime, date, UTC
+from datetime import UTC, date, datetime
 from decimal import Decimal
+from uuid import uuid4
+
+import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.domain.entities.bodyweight import BodyweightLog
 from app.infrastructure.database.repositories.bodyweight import SQLAlchemyBodyweightRepository
 

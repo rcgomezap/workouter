@@ -1,15 +1,17 @@
+from collections.abc import Sequence
 from datetime import date
-from typing import Sequence
 from uuid import UUID
-from sqlalchemy import select, func
+
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+
 from app.domain.entities.mesocycle import Mesocycle, MesocycleWeek, PlannedSession
-from app.domain.enums import MesocycleStatus, WeekType
+from app.domain.enums import MesocycleStatus
 from app.domain.repositories.mesocycle import MesocycleRepository
 from app.infrastructure.database.models.mesocycle import MesocycleTable, MesocycleWeekTable
+from app.infrastructure.database.models.routine import RoutineExerciseTable, RoutineTable
 from app.infrastructure.database.models.session import PlannedSessionTable
-from app.infrastructure.database.models.routine import RoutineTable, RoutineExerciseTable
 from app.infrastructure.database.repositories.base import SQLAlchemyBaseRepository
 
 

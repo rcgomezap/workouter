@@ -1,6 +1,7 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
+
+import pytest
 
 from app.application.services.muscle_group_service import MuscleGroupService
 from app.domain.entities.muscle_group import MuscleGroup

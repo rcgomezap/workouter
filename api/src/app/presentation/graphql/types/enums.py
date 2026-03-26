@@ -1,5 +1,7 @@
-import strawberry
 from enum import StrEnum
+
+import strawberry
+
 
 @strawberry.enum
 class SetType(StrEnum):

@@ -1,31 +1,44 @@
-import strawberry
 from uuid import UUID
+
+import strawberry
 from strawberry.types import Info
-from app.presentation.graphql.context import Context
-from app.presentation.graphql.types.session import Session, SessionExercise, SessionSet
-from app.presentation.graphql.types.exercise import Exercise
-from app.presentation.graphql.inputs.session import (
-    CreateSessionInput,
-    UpdateSessionInput,
-    AddSessionExerciseInput,
-    UpdateSessionExerciseInput,
-    AddSessionSetInput,
-    UpdateSessionSetInput,
-    LogSetResultInput,
+
+from app.application.dto.session import (
+    AddSessionExerciseInput as AddSessionExerciseDTO,
+)
+from app.application.dto.session import (
+    AddSessionSetInput as AddSessionSetDTO,
 )
 from app.application.dto.session import (
     CreateSessionInput as CreateSessionDTO,
-    UpdateSessionInput as UpdateSessionDTO,
-    AddSessionExerciseInput as AddSessionExerciseDTO,
-    UpdateSessionExerciseInput as UpdateSessionExerciseDTO,
-    AddSessionSetInput as AddSessionSetDTO,
-    UpdateSessionSetInput as UpdateSessionSetDTO,
+)
+from app.application.dto.session import (
     LogSetResultInput as LogSetResultDTO,
 )
-from app.domain.enums import (
-    SessionStatus as DomainSessionStatus,
-    SetType as DomainSetType
+from app.application.dto.session import (
+    UpdateSessionExerciseInput as UpdateSessionExerciseDTO,
 )
+from app.application.dto.session import (
+    UpdateSessionInput as UpdateSessionDTO,
+)
+from app.application.dto.session import (
+    UpdateSessionSetInput as UpdateSessionSetDTO,
+)
+from app.domain.enums import SessionStatus as DomainSessionStatus
+from app.domain.enums import SetType as DomainSetType
+from app.presentation.graphql.context import Context
+from app.presentation.graphql.inputs.session import (
+    AddSessionExerciseInput,
+    AddSessionSetInput,
+    CreateSessionInput,
+    LogSetResultInput,
+    UpdateSessionExerciseInput,
+    UpdateSessionInput,
+    UpdateSessionSetInput,
+)
+from app.presentation.graphql.types.exercise import Exercise
+from app.presentation.graphql.types.session import Session, SessionExercise, SessionSet
+
 
 def map_session_set(s) -> SessionSet:
     return SessionSet(

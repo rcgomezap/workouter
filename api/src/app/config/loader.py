@@ -1,7 +1,8 @@
 import os
-import yaml
-from typing import Any, Optional
 from pathlib import Path
+from typing import Any
+
+import yaml
 from pydantic import ValidationError
 
 from app.config.schema import Config
@@ -50,7 +51,7 @@ def _merge_env_overrides(config_dict: dict[str, Any]) -> None:
         current[parts[-1]] = val
 
 
-def load_config(config_path: Optional[str] = None) -> Config:
+def load_config(config_path: str | None = None) -> Config:
     """
     Load and validate configuration from a YAML file with environment overrides.
 
@@ -73,7 +74,7 @@ def load_config(config_path: Optional[str] = None) -> Config:
     raw_config = {}
     if path.exists():
         try:
-            with open(path, "r") as f:
+            with open(path) as f:
                 raw_config = yaml.safe_load(f) or {}
         except yaml.YAMLError as e:
             raise ConfigError(f"Error parsing YAML configuration: {e}")

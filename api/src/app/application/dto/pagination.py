@@ -1,5 +1,7 @@
+from collections.abc import Sequence
+from typing import Generic, TypeVar
+
 from pydantic import BaseModel, Field
-from typing import Generic, TypeVar, Sequence
 
 T = TypeVar("T")
 

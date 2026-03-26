@@ -1,15 +1,17 @@
-import strawberry
 from uuid import UUID
+
+import strawberry
 from strawberry.types import Info
+
+from app.application.dto.pagination import PaginationInput as PaginationDTO
 from app.presentation.graphql.context import Context
+from app.presentation.graphql.inputs.pagination import PaginationInput
 from app.presentation.graphql.types.exercise import (
     Exercise,
-    PaginatedExercises,
-    MuscleGroup,
     ExerciseMuscleGroup,
+    MuscleGroup,
+    PaginatedExercises,
 )
-from app.presentation.graphql.inputs.pagination import PaginationInput
-from app.application.dto.pagination import PaginationInput as PaginationDTO
 
 
 def map_exercise(e) -> Exercise:

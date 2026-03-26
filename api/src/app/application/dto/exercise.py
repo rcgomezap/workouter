@@ -1,7 +1,10 @@
 from uuid import UUID
-from pydantic import BaseModel, Field
-from app.domain.enums import MuscleRole
+
+from pydantic import BaseModel
+
 from app.application.dto.pagination import PaginatedResult
+from app.domain.enums import MuscleRole
+
 
 class MuscleGroupDTO(BaseModel):
     id: UUID

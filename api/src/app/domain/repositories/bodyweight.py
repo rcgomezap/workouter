@@ -1,5 +1,7 @@
+from collections.abc import Sequence
 from datetime import date
-from typing import Protocol, Sequence
+from typing import Protocol
+
 from app.domain.entities.bodyweight import BodyweightLog
 from app.domain.repositories.base import BaseRepository
 

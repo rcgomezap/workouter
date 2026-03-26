@@ -1,14 +1,12 @@
-from typing import Any
 import strawberry
-from strawberry.types import ExecutionContext
-from strawberry.fastapi import GraphQLRouter
-from app.domain.exceptions import (
-    EntityNotFoundException,
-    ConflictException,
-    ValidationException,
-    DomainException
-)
 import structlog
+
+from app.domain.exceptions import (
+    ConflictException,
+    DomainException,
+    EntityNotFoundException,
+    ValidationException,
+)
 
 logger = structlog.get_logger(__name__)
 

@@ -1,13 +1,14 @@
-from uuid import UUID
 from collections import defaultdict
+from uuid import UUID
+
 from app.application.dto.insight import (
+    IntensityInsight,
     MuscleGroupVolume,
     ProgressiveOverloadInsight,
     VolumeInsight,
     WeeklyExerciseProgress,
-    WeeklyVolume,
-    IntensityInsight,
     WeeklyIntensity,
+    WeeklyVolume,
 )
 from app.application.dto.pagination import PaginatedResult, PaginationInput
 from app.application.interfaces.unit_of_work import UnitOfWork

@@ -1,7 +1,9 @@
+from collections.abc import Sequence
 from datetime import date
-from typing import Sequence
-from sqlalchemy import select, func, and_, cast, Date
+
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.domain.entities.bodyweight import BodyweightLog
 from app.domain.repositories.bodyweight import BodyweightRepository
 from app.infrastructure.database.models.bodyweight import BodyweightLogTable

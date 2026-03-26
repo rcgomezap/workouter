@@ -1,7 +1,9 @@
-import pytest
+from datetime import UTC, date, datetime
 from uuid import uuid4
-from datetime import datetime, UTC, date
+
+import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.domain.entities.mesocycle import Mesocycle
 from app.domain.entities.routine import Routine
 from app.domain.entities.session import Session

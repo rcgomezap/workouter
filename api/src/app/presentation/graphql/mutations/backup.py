@@ -1,7 +1,10 @@
-import strawberry
 from datetime import datetime
+
+import strawberry
 from strawberry.types import Info
+
 from app.presentation.graphql.context import Context
+
 
 @strawberry.type
 class BackupResult:

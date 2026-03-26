@@ -1,17 +1,18 @@
-import pytest
+from datetime import date, timedelta
+from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
-from decimal import Decimal
-from datetime import date, timedelta
 
-from app.application.services.session_service import SessionService
-from app.application.dto.session import CreateSessionInput, LogSetResultInput
+import pytest
+
 from app.application.dto.pagination import PaginationInput
-from app.domain.entities.routine import Routine, RoutineExercise, RoutineSet
+from app.application.dto.session import CreateSessionInput, LogSetResultInput
+from app.application.services.session_service import SessionService
 from app.domain.entities.exercise import Exercise
-from app.domain.entities.session import Session, SessionSet, SessionExercise
+from app.domain.entities.routine import Routine, RoutineExercise, RoutineSet
+from app.domain.entities.session import Session, SessionExercise, SessionSet
 from app.domain.enums import SessionStatus, SetType
-from app.domain.exceptions import EntityNotFoundException, ConflictException
+from app.domain.exceptions import ConflictException, EntityNotFoundException
 
 
 @pytest.fixture

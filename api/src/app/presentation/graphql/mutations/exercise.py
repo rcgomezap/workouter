@@ -1,18 +1,19 @@
-import strawberry
 from uuid import UUID
+
+import strawberry
 from strawberry.types import Info
+
+from app.application.dto.exercise import CreateExerciseInput as CreateExerciseDTO
+from app.application.dto.exercise import MuscleGroupAssignmentInput as MuscleGroupAssignmentDTO
+from app.application.dto.exercise import UpdateExerciseInput as UpdateExerciseDTO
 from app.presentation.graphql.context import Context
-from app.presentation.graphql.types.exercise import Exercise
 from app.presentation.graphql.inputs.exercise import (
-    CreateExerciseInput, 
-    UpdateExerciseInput, 
-    MuscleGroupAssignmentInput
+    CreateExerciseInput,
+    MuscleGroupAssignmentInput,
+    UpdateExerciseInput,
 )
-from app.application.dto.exercise import (
-    CreateExerciseInput as CreateExerciseDTO,
-    UpdateExerciseInput as UpdateExerciseDTO,
-    MuscleGroupAssignmentInput as MuscleGroupAssignmentDTO
-)
+from app.presentation.graphql.types.exercise import Exercise
+
 
 @strawberry.type
 class ExerciseMutation:

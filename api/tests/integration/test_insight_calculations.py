@@ -1,6 +1,6 @@
+
 import pytest
 from httpx import AsyncClient
-from uuid import UUID
 
 
 @pytest.mark.anyio

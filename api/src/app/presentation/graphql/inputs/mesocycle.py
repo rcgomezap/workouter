@@ -1,24 +1,25 @@
-from typing import Optional
-from uuid import UUID
 from datetime import date
+from uuid import UUID
+
 import strawberry
+
 from app.presentation.graphql.types.enums import MesocycleStatus, WeekType
 
 
 @strawberry.input
 class CreateMesocycleInput:
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     start_date: date
 
 
 @strawberry.input
 class UpdateMesocycleInput:
-    name: Optional[str] = None
-    description: Optional[str] = None
-    start_date: Optional[date] = None
-    end_date: Optional[date] = None
-    status: Optional[MesocycleStatus] = None
+    name: str | None = None
+    description: str | None = None
+    start_date: date | None = None
+    end_date: date | None = None
+    status: MesocycleStatus | None = None
 
 
 @strawberry.input
@@ -31,23 +32,23 @@ class AddMesocycleWeekInput:
 
 @strawberry.input
 class UpdateMesocycleWeekInput:
-    week_number: Optional[int] = None
-    week_type: Optional[WeekType] = None
-    start_date: Optional[date] = None
-    end_date: Optional[date] = None
+    week_number: int | None = None
+    week_type: WeekType | None = None
+    start_date: date | None = None
+    end_date: date | None = None
 
 
 @strawberry.input
 class AddPlannedSessionInput:
-    routine_id: Optional[UUID] = None
+    routine_id: UUID | None = None
     day_of_week: int
-    date: Optional[date] = None
-    notes: Optional[str] = None
+    date: date | None = None
+    notes: str | None = None
 
 
 @strawberry.input
 class UpdatePlannedSessionInput:
-    routine_id: Optional[UUID] = None
-    day_of_week: Optional[int] = None
-    date: Optional[date] = None
-    notes: Optional[str] = None
+    routine_id: UUID | None = None
+    day_of_week: int | None = None
+    date: date | None = None
+    notes: str | None = None

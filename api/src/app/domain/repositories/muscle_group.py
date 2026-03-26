@@ -1,4 +1,6 @@
-from typing import Protocol, Sequence
+from collections.abc import Sequence
+from typing import Protocol
+
 from app.domain.entities.muscle_group import MuscleGroup
 from app.domain.repositories.base import BaseRepository
 

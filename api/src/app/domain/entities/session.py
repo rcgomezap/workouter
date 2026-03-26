@@ -1,8 +1,10 @@
 from datetime import datetime
 from decimal import Decimal
 from uuid import UUID
+
 from pydantic import Field
-from app.domain.entities.common import TimestampedEntity, BaseEntity
+
+from app.domain.entities.common import BaseEntity, TimestampedEntity
 from app.domain.entities.exercise import Exercise
 from app.domain.enums import SessionStatus, SetType
 

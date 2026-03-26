@@ -1,8 +1,11 @@
+import uuid
+from datetime import UTC, datetime
+
 import factory
+
 from app.domain.entities.session import Session, SessionExercise, SessionSet
 from app.domain.enums import SessionStatus, SetType
-import uuid
-from datetime import datetime, UTC
+
 
 class SessionFactory(factory.Factory):
     class Meta:

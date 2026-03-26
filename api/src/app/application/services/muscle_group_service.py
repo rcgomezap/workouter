@@ -1,8 +1,9 @@
 from uuid import UUID
-from app.application.interfaces.unit_of_work import UnitOfWork
+
 from app.application.dto.exercise import MuscleGroupDTO
-from app.domain.entities.muscle_group import MuscleGroup
+from app.application.interfaces.unit_of_work import UnitOfWork
 from app.domain.exceptions import EntityNotFoundException
+
 
 class MuscleGroupService:
     def __init__(self, uow: UnitOfWork) -> None:

@@ -1,7 +1,9 @@
-from uuid import UUID
 from datetime import date
+from uuid import UUID
+
 from pydantic import Field
-from app.domain.entities.common import TimestampedEntity, BaseEntity
+
+from app.domain.entities.common import BaseEntity, TimestampedEntity
 from app.domain.entities.routine import Routine
 from app.domain.enums import MesocycleStatus, WeekType
 

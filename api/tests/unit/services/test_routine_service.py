@@ -1,16 +1,17 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
 
-from app.application.services.routine_service import RoutineService
+import pytest
+
+from app.application.dto.pagination import PaginationInput
 from app.application.dto.routine import (
+    AddRoutineExerciseInput,
     CreateRoutineInput,
     UpdateRoutineInput,
-    AddRoutineExerciseInput,
 )
-from app.application.dto.pagination import PaginationInput
-from app.domain.entities.routine import Routine, RoutineExercise, RoutineSet
+from app.application.services.routine_service import RoutineService
 from app.domain.entities.exercise import Exercise
+from app.domain.entities.routine import Routine
 from app.domain.exceptions import EntityNotFoundException
 
 

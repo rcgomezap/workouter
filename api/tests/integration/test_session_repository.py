@@ -1,13 +1,14 @@
-import pytest
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
-from datetime import datetime, date, timedelta, UTC
+
+import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domain.entities.session import Session
 from app.domain.entities.mesocycle import Mesocycle
-from app.domain.enums import SessionStatus, MesocycleStatus
-from app.infrastructure.database.repositories.session import SQLAlchemySessionRepository
+from app.domain.entities.session import Session
+from app.domain.enums import MesocycleStatus, SessionStatus
 from app.infrastructure.database.repositories.mesocycle import SQLAlchemyMesocycleRepository
+from app.infrastructure.database.repositories.session import SQLAlchemySessionRepository
 
 
 @pytest.mark.asyncio

@@ -1,9 +1,12 @@
-from uuid import UUID
 from datetime import datetime
 from decimal import Decimal
+from uuid import UUID
+
 import strawberry
+
 from app.presentation.graphql.types.enums import SessionStatus, SetType
 from app.presentation.graphql.types.exercise import Exercise
+
 
 @strawberry.type
 class SessionSet:

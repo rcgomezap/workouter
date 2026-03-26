@@ -1,8 +1,11 @@
+import uuid
+from datetime import UTC, datetime
+
 import factory
+
 from app.domain.entities.routine import Routine, RoutineExercise, RoutineSet
 from app.domain.enums import SetType
-import uuid
-from datetime import datetime, UTC
+
 
 class RoutineFactory(factory.Factory):
     class Meta:

@@ -1,6 +1,8 @@
-import pytest
 from uuid import uuid4
+
+import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.domain.entities.muscle_group import MuscleGroup
 from app.infrastructure.database.repositories.muscle_group import SQLAlchemyMuscleGroupRepository
 

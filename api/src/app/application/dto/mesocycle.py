@@ -1,18 +1,19 @@
-from typing import Optional
-from uuid import UUID
 from datetime import date
+from uuid import UUID
+
 from pydantic import BaseModel
-from app.domain.enums import MesocycleStatus, WeekType
-from app.application.dto.routine import RoutineDTO
+
 from app.application.dto.pagination import PaginatedResult
+from app.application.dto.routine import RoutineDTO
+from app.domain.enums import MesocycleStatus, WeekType
 
 
 class PlannedSessionDTO(BaseModel):
     id: UUID
-    routine: Optional[RoutineDTO] = None
+    routine: RoutineDTO | None = None
     day_of_week: int
     date: date
-    notes: Optional[str] = None
+    notes: str | None = None
 
 
 class MesocycleWeekDTO(BaseModel):
@@ -27,25 +28,25 @@ class MesocycleWeekDTO(BaseModel):
 class MesocycleDTO(BaseModel):
     id: UUID
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     start_date: date
-    end_date: Optional[date] = None
+    end_date: date | None = None
     status: MesocycleStatus
     weeks: list[MesocycleWeekDTO]
 
 
 class CreateMesocycleInput(BaseModel):
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     start_date: date
 
 
 class UpdateMesocycleInput(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    start_date: Optional[date] = None
-    end_date: Optional[date] = None
-    status: Optional[MesocycleStatus] = None
+    name: str | None = None
+    description: str | None = None
+    start_date: date | None = None
+    end_date: date | None = None
+    status: MesocycleStatus | None = None
 
 
 class AddMesocycleWeekInput(BaseModel):
@@ -56,24 +57,24 @@ class AddMesocycleWeekInput(BaseModel):
 
 
 class UpdateMesocycleWeekInput(BaseModel):
-    week_number: Optional[int] = None
-    week_type: Optional[WeekType] = None
-    start_date: Optional[date] = None
-    end_date: Optional[date] = None
+    week_number: int | None = None
+    week_type: WeekType | None = None
+    start_date: date | None = None
+    end_date: date | None = None
 
 
 class AddPlannedSessionInput(BaseModel):
-    routine_id: Optional[UUID] = None
+    routine_id: UUID | None = None
     day_of_week: int
-    date: Optional[date] = None
-    notes: Optional[str] = None
+    date: date | None = None
+    notes: str | None = None
 
 
 class UpdatePlannedSessionInput(BaseModel):
-    routine_id: Optional[UUID] = None
-    day_of_week: Optional[int] = None
-    date: Optional[date] = None
-    notes: Optional[str] = None
+    routine_id: UUID | None = None
+    day_of_week: int | None = None
+    date: date | None = None
+    notes: str | None = None
 
 
 class PaginatedMesocycles(PaginatedResult[MesocycleDTO]):

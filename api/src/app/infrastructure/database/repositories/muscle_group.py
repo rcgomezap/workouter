@@ -1,6 +1,8 @@
-from typing import Sequence
+from collections.abc import Sequence
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.domain.entities.muscle_group import MuscleGroup
 from app.domain.repositories.muscle_group import MuscleGroupRepository
 from app.infrastructure.database.models.muscle_group import MuscleGroupTable

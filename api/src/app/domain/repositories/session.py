@@ -1,7 +1,9 @@
+from collections.abc import Sequence
 from datetime import date
-from typing import Protocol, Sequence
+from typing import Protocol
 from uuid import UUID
-from app.domain.entities.session import Session, SessionSet, SessionExercise
+
+from app.domain.entities.session import Session, SessionExercise, SessionSet
 from app.domain.enums import SessionStatus
 from app.domain.repositories.base import BaseRepository
 

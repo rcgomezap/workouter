@@ -1,13 +1,17 @@
-import strawberry
 from uuid import UUID
+
+import strawberry
 from strawberry.types import Info
-from app.presentation.graphql.context import Context
-from app.presentation.graphql.types.bodyweight import BodyweightLog
-from app.presentation.graphql.inputs.bodyweight import LogBodyweightInput, UpdateBodyweightInput
+
 from app.application.dto.bodyweight import (
     LogBodyweightInput as LogBodyweightDTO,
+)
+from app.application.dto.bodyweight import (
     UpdateBodyweightInput as UpdateBodyweightDTO,
 )
+from app.presentation.graphql.context import Context
+from app.presentation.graphql.inputs.bodyweight import LogBodyweightInput, UpdateBodyweightInput
+from app.presentation.graphql.types.bodyweight import BodyweightLog
 
 
 def map_bodyweight_log(l) -> BodyweightLog:

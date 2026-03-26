@@ -1,7 +1,10 @@
 from datetime import date
+
 import strawberry
+
 from app.presentation.graphql.types.mesocycle import PlannedSession
 from app.presentation.graphql.types.session import Session
+
 
 @strawberry.type
 class CalendarDay:

@@ -1,27 +1,38 @@
-import strawberry
 from uuid import UUID
+
+import strawberry
 from strawberry.types import Info
-from app.presentation.graphql.context import Context
-from app.presentation.graphql.types.routine import Routine, RoutineExercise, RoutineSet
-from app.presentation.graphql.types.exercise import MuscleGroup, ExerciseMuscleGroup
-from app.presentation.graphql.resolvers.exercise import map_exercise
-from app.presentation.graphql.inputs.routine import (
-    CreateRoutineInput,
-    UpdateRoutineInput,
-    AddRoutineExerciseInput,
-    UpdateRoutineExerciseInput,
-    AddRoutineSetInput,
-    UpdateRoutineSetInput,
+
+from app.application.dto.routine import (
+    AddRoutineExerciseInput as AddRoutineExerciseDTO,
+)
+from app.application.dto.routine import (
+    AddRoutineSetInput as AddRoutineSetDTO,
 )
 from app.application.dto.routine import (
     CreateRoutineInput as CreateRoutineDTO,
-    UpdateRoutineInput as UpdateRoutineDTO,
-    AddRoutineExerciseInput as AddRoutineExerciseDTO,
+)
+from app.application.dto.routine import (
     UpdateRoutineExerciseInput as UpdateRoutineExerciseDTO,
-    AddRoutineSetInput as AddRoutineSetDTO,
+)
+from app.application.dto.routine import (
+    UpdateRoutineInput as UpdateRoutineDTO,
+)
+from app.application.dto.routine import (
     UpdateRoutineSetInput as UpdateRoutineSetDTO,
 )
 from app.domain.enums import SetType as DomainSetType
+from app.presentation.graphql.context import Context
+from app.presentation.graphql.inputs.routine import (
+    AddRoutineExerciseInput,
+    AddRoutineSetInput,
+    CreateRoutineInput,
+    UpdateRoutineExerciseInput,
+    UpdateRoutineInput,
+    UpdateRoutineSetInput,
+)
+from app.presentation.graphql.resolvers.exercise import map_exercise
+from app.presentation.graphql.types.routine import Routine, RoutineExercise, RoutineSet
 
 
 def map_routine_set(s) -> RoutineSet:

@@ -1,18 +1,18 @@
 from uuid import UUID
-from typing import Sequence
-from app.application.interfaces.unit_of_work import UnitOfWork
+
 from app.application.dto.exercise import (
-    ExerciseDTO,
     CreateExerciseInput,
-    UpdateExerciseInput,
-    MuscleGroupDTO,
+    ExerciseDTO,
     ExerciseMuscleGroupDTO,
     MuscleGroupAssignmentInput,
+    MuscleGroupDTO,
     PaginatedExercises,
+    UpdateExerciseInput,
 )
 from app.application.dto.pagination import PaginationInput
+from app.application.interfaces.unit_of_work import UnitOfWork
 from app.domain.entities.exercise import Exercise, ExerciseMuscleGroup
-from app.domain.exceptions import EntityNotFoundException, ConflictException
+from app.domain.exceptions import EntityNotFoundException
 
 
 class ExerciseService:

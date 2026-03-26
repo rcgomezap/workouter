@@ -1,9 +1,11 @@
-from typing import Sequence
+from collections.abc import Sequence
 from uuid import UUID
-from sqlalchemy import select, func
+
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from app.domain.entities.exercise import Exercise, ExerciseMuscleGroup
+
+from app.domain.entities.exercise import Exercise
 from app.domain.repositories.exercise import ExerciseRepository
 from app.infrastructure.database.models.exercise import ExerciseTable, exercise_muscle_group
 from app.infrastructure.database.repositories.base import SQLAlchemyBaseRepository

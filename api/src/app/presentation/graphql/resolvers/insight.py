@@ -1,20 +1,22 @@
-import strawberry
 from uuid import UUID
+
+import strawberry
 from strawberry.types import Info
+
+from app.application.dto.pagination import PaginationInput as PaginationDTO
 from app.presentation.graphql.context import Context
+from app.presentation.graphql.inputs.pagination import PaginationInput
+from app.presentation.graphql.types.enums import SessionStatus as SessionStatusType
 from app.presentation.graphql.types.insight import (
-    VolumeInsight,
-    WeeklyVolume,
+    IntensityInsight,
     MuscleGroupVolume,
     ProgressiveOverloadInsight,
+    VolumeInsight,
     WeeklyExerciseProgress,
-    IntensityInsight,
     WeeklyIntensity,
+    WeeklyVolume,
 )
 from app.presentation.graphql.types.session import PaginatedSessions, Session
-from app.presentation.graphql.types.enums import SessionStatus as SessionStatusType
-from app.presentation.graphql.inputs.pagination import PaginationInput
-from app.application.dto.pagination import PaginationInput as PaginationDTO
 
 
 def map_volume_insight(v) -> VolumeInsight:

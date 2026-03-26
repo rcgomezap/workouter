@@ -1,9 +1,9 @@
-from datetime import datetime, UTC
 import uuid
+from datetime import UTC, datetime
+
 from sqlalchemy import MetaData
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.types import DateTime
-
 
 # Custom naming convention for constraints
 # This is useful for Alembic migrations

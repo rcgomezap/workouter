@@ -1,14 +1,16 @@
+import os
+
 import pytest
 import pytest_asyncio
-from httpx import AsyncClient, ASGITransport
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy import event
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
-from app.main import create_app
-from app.infrastructure.database.models.base import Base
-from app.infrastructure.database import connection
+
 from app.config.loader import load_config as get_config
-import os
+from app.infrastructure.database import connection
+from app.infrastructure.database.models.base import Base
+from app.main import create_app
 
 
 @pytest.fixture(scope="function")

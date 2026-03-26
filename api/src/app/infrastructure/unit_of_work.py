@@ -1,12 +1,14 @@
 from typing import Self
+
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.application.interfaces.unit_of_work import UnitOfWork
+from app.infrastructure.database.repositories.bodyweight import SQLAlchemyBodyweightRepository
 from app.infrastructure.database.repositories.exercise import SQLAlchemyExerciseRepository
+from app.infrastructure.database.repositories.mesocycle import SQLAlchemyMesocycleRepository
 from app.infrastructure.database.repositories.muscle_group import SQLAlchemyMuscleGroupRepository
 from app.infrastructure.database.repositories.routine import SQLAlchemyRoutineRepository
-from app.infrastructure.database.repositories.mesocycle import SQLAlchemyMesocycleRepository
 from app.infrastructure.database.repositories.session import SQLAlchemySessionRepository
-from app.infrastructure.database.repositories.bodyweight import SQLAlchemyBodyweightRepository
 
 
 class SQLAlchemyUnitOfWork(UnitOfWork):

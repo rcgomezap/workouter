@@ -1,7 +1,8 @@
+import structlog
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
+
 from app.infrastructure.backup.manager import BackupManager
-import structlog
 
 logger = structlog.get_logger(__name__)
 

@@ -1,9 +1,11 @@
+import uuid
+from datetime import UTC, datetime
+
 import factory
+
 from app.domain.entities.exercise import Exercise
 from app.domain.entities.muscle_group import MuscleGroup
-from app.domain.enums import MuscleRole
-import uuid
-from datetime import datetime, UTC
+
 
 class MuscleGroupFactory(factory.Factory):
     class Meta:

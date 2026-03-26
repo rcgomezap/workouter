@@ -1,4 +1,5 @@
 from pydantic import BaseModel, ConfigDict
+
 from app.domain.entities.common import TimestampedEntity
 from app.domain.entities.muscle_group import MuscleGroup
 from app.domain.enums import MuscleRole

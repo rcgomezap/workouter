@@ -1,17 +1,18 @@
-from datetime import datetime, date
-from typing import TYPE_CHECKING
 import uuid
+from datetime import date, datetime
 from decimal import Decimal
-from sqlalchemy import ForeignKey, Text, Integer, Date, Enum, UniqueConstraint, Numeric, DateTime
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.domain.enums import SessionStatus, SetType
-from app.infrastructure.database.models.base import Base, UUIDMixin, TimestampMixin
+from typing import TYPE_CHECKING
 
+from sqlalchemy import Date, DateTime, Enum, ForeignKey, Integer, Numeric, Text, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.domain.enums import SessionStatus, SetType
+from app.infrastructure.database.models.base import Base, TimestampMixin, UUIDMixin
 
 if TYPE_CHECKING:
+    from app.infrastructure.database.models.exercise import ExerciseTable
     from app.infrastructure.database.models.mesocycle import MesocycleTable, MesocycleWeekTable
     from app.infrastructure.database.models.routine import RoutineTable
-    from app.infrastructure.database.models.exercise import ExerciseTable
 
 
 class PlannedSessionTable(Base, UUIDMixin):

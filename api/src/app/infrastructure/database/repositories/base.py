@@ -1,9 +1,11 @@
-from typing import Generic, TypeVar, Sequence
+from collections.abc import Sequence
+from typing import Generic, TypeVar
 from uuid import UUID
-from sqlalchemy import select, delete, func
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.domain.repositories.base import BaseRepository
 
+from sqlalchemy import delete, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.domain.repositories.base import BaseRepository
 
 T = TypeVar("T")
 M = TypeVar("M")

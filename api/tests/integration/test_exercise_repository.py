@@ -1,12 +1,14 @@
-import pytest
 from uuid import uuid4
+
+import pytest
+from sqlalchemy import insert
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.domain.entities.exercise import Exercise
 from app.domain.entities.muscle_group import MuscleGroup
+from app.infrastructure.database.models.exercise import exercise_muscle_group
 from app.infrastructure.database.repositories.exercise import SQLAlchemyExerciseRepository
 from app.infrastructure.database.repositories.muscle_group import SQLAlchemyMuscleGroupRepository
-from app.infrastructure.database.models.exercise import exercise_muscle_group
-from sqlalchemy import insert
 
 
 @pytest.mark.asyncio

@@ -1,9 +1,12 @@
-from uuid import UUID
 from decimal import Decimal
+from uuid import UUID
+
 from pydantic import BaseModel
-from app.domain.enums import SetType
+
 from app.application.dto.exercise import ExerciseDTO
 from app.application.dto.pagination import PaginatedResult
+from app.domain.enums import SetType
+
 
 class RoutineSetDTO(BaseModel):
     id: UUID

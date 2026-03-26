@@ -1,7 +1,9 @@
-from uuid import UUID
 from datetime import datetime
 from decimal import Decimal
+from uuid import UUID
+
 import strawberry
+
 
 @strawberry.type
 class BodyweightLog:

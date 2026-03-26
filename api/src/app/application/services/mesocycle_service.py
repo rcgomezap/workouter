@@ -1,24 +1,25 @@
+from datetime import timedelta
 from uuid import UUID
-from datetime import date, timedelta
-from app.application.interfaces.unit_of_work import UnitOfWork
+
+from app.application.dto.exercise import ExerciseDTO, ExerciseMuscleGroupDTO, MuscleGroupDTO
 from app.application.dto.mesocycle import (
+    AddMesocycleWeekInput,
+    AddPlannedSessionInput,
+    CreateMesocycleInput,
     MesocycleDTO,
     MesocycleWeekDTO,
-    PlannedSessionDTO,
-    CreateMesocycleInput,
-    UpdateMesocycleInput,
-    AddMesocycleWeekInput,
-    UpdateMesocycleWeekInput,
-    AddPlannedSessionInput,
-    UpdatePlannedSessionInput,
     PaginatedMesocycles,
+    PlannedSessionDTO,
+    UpdateMesocycleInput,
+    UpdateMesocycleWeekInput,
+    UpdatePlannedSessionInput,
 )
-from app.application.dto.routine import RoutineDTO, RoutineExerciseDTO, RoutineSetDTO
-from app.application.dto.exercise import ExerciseDTO, MuscleGroupDTO, ExerciseMuscleGroupDTO
 from app.application.dto.pagination import PaginationInput
+from app.application.dto.routine import RoutineDTO, RoutineExerciseDTO, RoutineSetDTO
+from app.application.interfaces.unit_of_work import UnitOfWork
 from app.domain.entities.mesocycle import Mesocycle, MesocycleWeek, PlannedSession
-from app.domain.enums import MesocycleStatus, WeekType
-from app.domain.exceptions import EntityNotFoundException, ConflictException
+from app.domain.enums import MesocycleStatus
+from app.domain.exceptions import EntityNotFoundException
 
 
 class MesocycleService:

@@ -1,7 +1,7 @@
-from uuid import UUID
 from decimal import Decimal
-from pydantic import BaseModel, ConfigDict
-from app.domain.entities.common import TimestampedEntity, BaseEntity
+from uuid import UUID
+
+from app.domain.entities.common import BaseEntity, TimestampedEntity
 from app.domain.entities.exercise import Exercise
 from app.domain.enums import SetType
 

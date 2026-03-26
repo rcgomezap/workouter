@@ -1,21 +1,22 @@
 from uuid import UUID
-from app.application.interfaces.unit_of_work import UnitOfWork
+
+from app.application.dto.exercise import ExerciseDTO, ExerciseMuscleGroupDTO, MuscleGroupDTO
+from app.application.dto.pagination import PaginationInput
 from app.application.dto.routine import (
+    AddRoutineExerciseInput,
+    AddRoutineSetInput,
+    CreateRoutineInput,
+    PaginatedRoutines,
     RoutineDTO,
     RoutineExerciseDTO,
     RoutineSetDTO,
-    CreateRoutineInput,
-    UpdateRoutineInput,
-    AddRoutineExerciseInput,
     UpdateRoutineExerciseInput,
-    AddRoutineSetInput,
+    UpdateRoutineInput,
     UpdateRoutineSetInput,
-    PaginatedRoutines,
 )
-from app.application.dto.exercise import ExerciseDTO, MuscleGroupDTO, ExerciseMuscleGroupDTO
-from app.application.dto.pagination import PaginationInput
+from app.application.interfaces.unit_of_work import UnitOfWork
 from app.domain.entities.routine import Routine, RoutineExercise, RoutineSet
-from app.domain.exceptions import EntityNotFoundException, ConflictException
+from app.domain.exceptions import EntityNotFoundException
 
 
 class RoutineService:

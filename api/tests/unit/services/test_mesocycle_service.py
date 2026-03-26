@@ -1,12 +1,13 @@
-import pytest
+from datetime import date
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
-from datetime import date
 
-from app.application.services.mesocycle_service import MesocycleService
+import pytest
+
 from app.application.dto.mesocycle import CreateMesocycleInput, UpdateMesocycleInput
 from app.application.dto.pagination import PaginationInput
-from app.domain.entities.mesocycle import Mesocycle, MesocycleWeek, PlannedSession
+from app.application.services.mesocycle_service import MesocycleService
+from app.domain.entities.mesocycle import Mesocycle, MesocycleWeek
 from app.domain.enums import MesocycleStatus, WeekType
 from app.domain.exceptions import EntityNotFoundException
 

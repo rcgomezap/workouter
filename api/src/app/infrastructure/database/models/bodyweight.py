@@ -1,7 +1,9 @@
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from decimal import Decimal
-from sqlalchemy import Text, Numeric, DateTime
+
+from sqlalchemy import DateTime, Numeric, Text
 from sqlalchemy.orm import Mapped, mapped_column
+
 from app.infrastructure.database.models.base import Base, UUIDMixin
 
 

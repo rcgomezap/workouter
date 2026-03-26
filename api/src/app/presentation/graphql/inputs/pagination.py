@@ -1,5 +1,6 @@
 import strawberry
 
+
 @strawberry.input
 class PaginationInput:
     page: int = 1

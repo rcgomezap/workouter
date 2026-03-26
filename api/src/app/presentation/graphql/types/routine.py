@@ -1,8 +1,11 @@
-from uuid import UUID
 from decimal import Decimal
+from uuid import UUID
+
 import strawberry
+
 from app.presentation.graphql.types.enums import SetType
 from app.presentation.graphql.types.exercise import Exercise
+
 
 @strawberry.type
 class RoutineSet:

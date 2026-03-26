@@ -1,7 +1,8 @@
-from uuid import UUID
 from datetime import datetime
 from decimal import Decimal
+
 import strawberry
+
 
 @strawberry.input
 class LogBodyweightInput:

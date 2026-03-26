@@ -1,9 +1,10 @@
 from typing import TYPE_CHECKING
+
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.infrastructure.database.models.base import Base, UUIDMixin
 from app.infrastructure.database.models.exercise import exercise_muscle_group
-
 
 if TYPE_CHECKING:
     from app.infrastructure.database.models.exercise import ExerciseTable

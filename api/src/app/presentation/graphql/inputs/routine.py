@@ -1,7 +1,10 @@
-from uuid import UUID
 from decimal import Decimal
+from uuid import UUID
+
 import strawberry
+
 from app.presentation.graphql.types.enums import SetType
+
 
 @strawberry.input
 class CreateRoutineInput:

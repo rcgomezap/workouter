@@ -1,5 +1,7 @@
+from collections.abc import Sequence
+from typing import Protocol
 from uuid import UUID
-from typing import Protocol, Sequence
+
 from app.domain.entities.mesocycle import Mesocycle, MesocycleWeek, PlannedSession
 from app.domain.enums import MesocycleStatus
 from app.domain.repositories.base import BaseRepository

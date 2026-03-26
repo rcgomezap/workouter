@@ -1,4 +1,5 @@
-from typing import Generic, TypeVar, Protocol, Sequence
+from collections.abc import Sequence
+from typing import Protocol, TypeVar
 from uuid import UUID
 
 T = TypeVar("T")

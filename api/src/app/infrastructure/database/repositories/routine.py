@@ -1,13 +1,15 @@
 from uuid import UUID
-from sqlalchemy import select, func
+
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+
 from app.domain.entities.routine import Routine, RoutineExercise, RoutineSet
 from app.domain.repositories.routine import RoutineRepository
 from app.infrastructure.database.models.routine import (
-    RoutineTable,
     RoutineExerciseTable,
     RoutineSetTable,
+    RoutineTable,
 )
 from app.infrastructure.database.repositories.base import SQLAlchemyBaseRepository
 

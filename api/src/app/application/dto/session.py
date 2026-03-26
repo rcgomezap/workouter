@@ -1,10 +1,12 @@
-from uuid import UUID
 from datetime import datetime
 from decimal import Decimal
+from uuid import UUID
+
 from pydantic import BaseModel
-from app.domain.enums import SessionStatus, SetType
+
 from app.application.dto.exercise import ExerciseDTO
 from app.application.dto.pagination import PaginatedResult
+from app.domain.enums import SessionStatus, SetType
 
 
 class SessionSetDTO(BaseModel):
