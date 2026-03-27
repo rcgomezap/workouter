@@ -3,6 +3,7 @@
 import click
 
 from workouter_cli.infrastructure.config.loader import ConfigError, load_config
+from workouter_cli.presentation.middleware.logging import setup_logging
 
 
 @click.group()
@@ -21,7 +22,9 @@ def cli(ctx: click.Context) -> None:
         return
 
     try:
-        ctx.obj = {"config": load_config()}
+        config = load_config()
+        setup_logging(config)
+        ctx.obj = {"config": config}
     except ConfigError as error:
         click.echo(f"Error: {error}", err=True)
         raise click.exceptions.Exit(error.exit_code.value) from error
