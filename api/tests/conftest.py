@@ -1,4 +1,5 @@
 import os
+import asyncio
 
 import pytest
 import pytest_asyncio
@@ -10,6 +11,7 @@ from sqlalchemy.pool import StaticPool
 from app.config.loader import load_config as get_config
 from app.infrastructure.database import connection
 from app.infrastructure.database.models.base import Base
+from app.infrastructure.seed import seed_muscle_groups
 from app.main import create_app
 
 
@@ -20,7 +22,6 @@ def anyio_backend():
 
 @pytest_asyncio.fixture(scope="function")
 async def test_engine(anyio_backend):
-    config = get_config()
     engine = create_async_engine(
         "sqlite+aiosqlite:///:memory:",
         echo=True,
@@ -54,8 +55,6 @@ async def test_engine(anyio_backend):
 
     await engine.dispose()
     # Wait a bit before deleting to ensure all connections are closed
-    import asyncio
-
     await asyncio.sleep(0.1)
     if os.path.exists("test_db.sqlite"):
         try:
@@ -79,6 +78,10 @@ async def client(test_engine):
         class_=AsyncSession,
         expire_on_commit=False,
     )
+
+    # Seed muscle groups for tests
+    await seed_muscle_groups(session_factory)
+
     app = create_app(engine=test_engine, session_factory=session_factory)
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac

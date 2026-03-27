@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -66,6 +66,41 @@ class SQLAlchemyExerciseRepository(
         stmt = select(func.count()).select_from(ExerciseTable)
         result = await self._session.execute(stmt)
         return result.scalar() or 0
+
+    async def update(self, entity: Exercise) -> Exercise:
+        stmt = (
+            select(ExerciseTable)
+            .where(ExerciseTable.id == entity.id)
+            .options(selectinload(ExerciseTable.muscle_groups))
+        )
+        result = await self._session.execute(stmt)
+        model_obj = result.scalar_one_or_none()
+
+        if not model_obj:
+            raise ValueError(f"Entity with id {entity.id} not found")
+
+        self._update_model(model_obj, entity)
+
+        await self._session.execute(
+            delete(exercise_muscle_group).where(exercise_muscle_group.c.exercise_id == entity.id)
+        )
+
+        if entity.muscle_groups:
+            await self._session.execute(
+                insert(exercise_muscle_group),
+                [
+                    {
+                        "exercise_id": entity.id,
+                        "muscle_group_id": mg.muscle_group.id,
+                        "role": mg.role,
+                    }
+                    for mg in entity.muscle_groups
+                ],
+            )
+
+        await self._session.flush()
+        await self._session.refresh(model_obj)
+        return self._to_domain(model_obj)
 
     def _to_domain(self, model_obj: ExerciseTable) -> Exercise:
         # Note: In a real implementation, you'd handle the role from the association table

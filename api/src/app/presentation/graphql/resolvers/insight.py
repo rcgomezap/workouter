@@ -24,7 +24,12 @@ def map_volume_insight(v: Any) -> VolumeInsight:
     return VolumeInsight(
         mesocycle_id=v.mesocycle_id,
         weekly_volumes=[
-            WeeklyVolume(week_number=wv.week_number, set_count=wv.sets_count)
+            WeeklyVolume(
+                week_number=wv.week_number,
+                muscle_group_id=wv.muscle_group_id,
+                muscle_group_name=wv.muscle_group_name,
+                set_count=wv.sets_count,
+            )
             for wv in v.weekly_volumes
         ],
         total_sets=v.total_sets,

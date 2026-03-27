@@ -178,6 +178,31 @@ async def test_insights_api(client: AsyncClient, auth_headers: dict):
     )
     routine_id = resp.json()["data"]["createRoutine"]["id"]
 
+    # 2a. Assign muscle group to exercise (needed for volume insights)
+    resp = await client.post(
+        "/graphql",
+        json={"query": "query { muscleGroups { id name } }"},
+        headers=auth_headers,
+    )
+    muscle_groups = resp.json()["data"]["muscleGroups"]
+    lats_mg = next(
+        (mg for mg in muscle_groups if mg["name"] == "Lats"),
+        muscle_groups[0] if muscle_groups else None,
+    )
+    assert lats_mg is not None, "No muscle groups available for testing"
+
+    await client.post(
+        "/graphql",
+        json={
+            "query": "mutation Assign($eid: UUID!, $mgs: [MuscleGroupAssignmentInput!]!) { assignMuscleGroups(exerciseId: $eid, muscleGroupIds: $mgs) { id } }",
+            "variables": {
+                "eid": ex_id,
+                "mgs": [{"muscleGroupId": lats_mg["id"], "role": "PRIMARY"}],
+            },
+        },
+        headers=auth_headers,
+    )
+
     # Add Exercise to Routine
     await client.post(
         "/graphql",
@@ -260,7 +285,12 @@ async def test_insights_api(client: AsyncClient, auth_headers: dict):
         mesocycleVolumeInsight(mesocycleId: $mid) {
             mesocycleId
             totalSets
-            weeklyVolumes { weekNumber setCount }
+            weeklyVolumes { 
+                weekNumber 
+                muscleGroupId 
+                muscleGroupName 
+                setCount 
+            }
         }
     }
     """
@@ -270,6 +300,13 @@ async def test_insights_api(client: AsyncClient, auth_headers: dict):
     assert resp.status_code == 200
     vol_data = resp.json()["data"]["mesocycleVolumeInsight"]
     assert vol_data["totalSets"] >= 1
+    # Verify weekly volumes have muscle group information
+    assert len(vol_data["weeklyVolumes"]) > 0
+    for wv in vol_data["weeklyVolumes"]:
+        assert wv["weekNumber"] is not None
+        assert wv["muscleGroupId"] is not None
+        assert wv["muscleGroupName"] is not None
+        assert wv["setCount"] > 0
 
     # Progressive Overload Insight
     po_query = """
