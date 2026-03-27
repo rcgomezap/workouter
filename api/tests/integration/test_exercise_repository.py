@@ -1,11 +1,12 @@
 from uuid import uuid4
 
 import pytest
-from sqlalchemy import insert
+from sqlalchemy import insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.entities.exercise import Exercise
 from app.domain.entities.muscle_group import MuscleGroup
+from app.domain.enums import MuscleRole
 from app.infrastructure.database.models.exercise import exercise_muscle_group
 from app.infrastructure.database.repositories.exercise import SQLAlchemyExerciseRepository
 from app.infrastructure.database.repositories.muscle_group import SQLAlchemyMuscleGroupRepository
@@ -81,3 +82,40 @@ async def test_exercise_repository_filter_by_muscle_group(db_session: AsyncSessi
     assert chest_exercises[0].name == "Pushup"
     assert count == 1
     assert total_count >= 2
+
+
+@pytest.mark.asyncio
+async def test_update_exercise_preserves_muscle_group_assignments(db_session: AsyncSession):
+    ex_repo = SQLAlchemyExerciseRepository(db_session)
+    mg_repo = SQLAlchemyMuscleGroupRepository(db_session)
+
+    mg = MuscleGroup(id=uuid4(), name="Chest")
+    await mg_repo.add(mg)
+
+    ex = Exercise(id=uuid4(), name="Bench Press", muscle_groups=[])
+    await ex_repo.add(ex)
+
+    await db_session.execute(
+        insert(exercise_muscle_group).values(
+            exercise_id=ex.id,
+            muscle_group_id=mg.id,
+            role=MuscleRole.PRIMARY.value,
+        )
+    )
+    await db_session.commit()
+
+    fetched = await ex_repo.get_by_id(ex.id)
+    assert fetched is not None
+    assert fetched.muscle_groups is None
+
+    fetched.name = "Incline Bench Press"
+    await ex_repo.update(fetched)
+    await db_session.commit()
+
+    rows = (
+        await db_session.execute(
+            select(exercise_muscle_group).where(exercise_muscle_group.c.exercise_id == ex.id)
+        )
+    ).all()
+    assert len(rows) == 1
+    assert rows[0].muscle_group_id == mg.id

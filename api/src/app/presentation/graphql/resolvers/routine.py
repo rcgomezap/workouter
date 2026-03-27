@@ -31,6 +31,7 @@ def map_routine_set(s: Any) -> RoutineSet:
 
 
 def map_exercise(e: Any) -> Exercise:
+    muscle_groups = e.muscle_groups if e.muscle_groups is not None else []
     return Exercise(
         id=e.id,
         name=e.name,
@@ -41,7 +42,7 @@ def map_exercise(e: Any) -> Exercise:
                 muscle_group=MuscleGroup(id=mg.muscle_group.id, name=mg.muscle_group.name),
                 role=mg.role,
             )
-            for mg in e.muscle_groups
+            for mg in muscle_groups
         ],
     )
 

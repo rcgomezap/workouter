@@ -235,6 +235,7 @@ class RoutineService:
             return True
 
     def _map_re_to_dto(self, re: RoutineExercise) -> RoutineExerciseDTO:
+        muscle_groups = re.exercise.muscle_groups if re.exercise.muscle_groups is not None else []
         return RoutineExerciseDTO(
             id=re.id,
             exercise=ExerciseDTO(
@@ -249,7 +250,7 @@ class RoutineService:
                         ),
                         role=mg.role,
                     )
-                    for mg in re.exercise.muscle_groups
+                    for mg in muscle_groups
                 ],
             ),
             order=re.order,
@@ -277,43 +278,5 @@ class RoutineService:
             id=routine.id,
             name=routine.name,
             description=routine.description,
-            exercises=[
-                RoutineExerciseDTO(
-                    id=re.id,
-                    exercise=ExerciseDTO(
-                        id=re.exercise.id,
-                        name=re.exercise.name,
-                        description=re.exercise.description,
-                        equipment=re.exercise.equipment,
-                        muscle_groups=[
-                            ExerciseMuscleGroupDTO(
-                                muscle_group=MuscleGroupDTO(
-                                    id=mg.muscle_group.id, name=mg.muscle_group.name
-                                ),
-                                role=mg.role,
-                            )
-                            for mg in re.exercise.muscle_groups
-                        ],
-                    ),
-                    order=re.order,
-                    superset_group=re.superset_group,
-                    rest_seconds=re.rest_seconds,
-                    notes=re.notes,
-                    sets=[
-                        RoutineSetDTO(
-                            id=rs.id,
-                            set_number=rs.set_number,
-                            set_type=rs.set_type,
-                            target_reps_min=rs.target_reps_min,
-                            target_reps_max=rs.target_reps_max,
-                            target_rir=rs.target_rir,
-                            target_weight_kg=rs.target_weight_kg,
-                            weight_reduction_pct=rs.weight_reduction_pct,
-                            rest_seconds=rs.rest_seconds,
-                        )
-                        for rs in re.sets
-                    ],
-                )
-                for re in routine.exercises
-            ],
+            exercises=[self._map_re_to_dto(re) for re in routine.exercises],
         )

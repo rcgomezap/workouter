@@ -8,8 +8,8 @@ from app.application.dto.routine import RoutineDTO, RoutineExerciseDTO, RoutineS
 from app.application.dto.session import SessionDTO, SessionExerciseDTO, SessionSetDTO
 from app.application.interfaces.unit_of_work import UnitOfWork
 from app.domain.entities.mesocycle import PlannedSession
-from app.domain.entities.routine import Routine
-from app.domain.entities.session import Session, SessionSet
+from app.domain.entities.routine import Routine, RoutineExercise
+from app.domain.entities.session import Session, SessionExercise, SessionSet
 from app.domain.enums import SessionStatus
 
 
@@ -80,6 +80,32 @@ class CalendarService:
         )
 
     def _map_session_to_dto(self, session: Session) -> SessionDTO:
+        def _map_session_exercise(se: SessionExercise) -> SessionExerciseDTO:
+            mgs = se.exercise.muscle_groups if se.exercise.muscle_groups is not None else []
+            return SessionExerciseDTO(
+                id=se.id,
+                exercise=ExerciseDTO(
+                    id=se.exercise.id,
+                    name=se.exercise.name,
+                    description=se.exercise.description,
+                    equipment=se.exercise.equipment,
+                    muscle_groups=[
+                        ExerciseMuscleGroupDTO(
+                            muscle_group=MuscleGroupDTO(
+                                id=mg.muscle_group.id, name=mg.muscle_group.name
+                            ),
+                            role=mg.role,
+                        )
+                        for mg in mgs
+                    ],
+                ),
+                order=se.order,
+                superset_group=se.superset_group,
+                rest_seconds=se.rest_seconds,
+                notes=se.notes,
+                sets=[self._map_session_set_to_dto(ss) for ss in se.sets],
+            )
+
         return SessionDTO(
             id=session.id,
             planned_session_id=session.planned_session_id,
@@ -89,32 +115,7 @@ class CalendarService:
             started_at=session.started_at,
             completed_at=session.completed_at,
             notes=session.notes,
-            exercises=[
-                SessionExerciseDTO(
-                    id=se.id,
-                    exercise=ExerciseDTO(
-                        id=se.exercise.id,
-                        name=se.exercise.name,
-                        description=se.exercise.description,
-                        equipment=se.exercise.equipment,
-                        muscle_groups=[
-                            ExerciseMuscleGroupDTO(
-                                muscle_group=MuscleGroupDTO(
-                                    id=mg.muscle_group.id, name=mg.muscle_group.name
-                                ),
-                                role=mg.role,
-                            )
-                            for mg in se.exercise.muscle_groups
-                        ],
-                    ),
-                    order=se.order,
-                    superset_group=se.superset_group,
-                    rest_seconds=se.rest_seconds,
-                    notes=se.notes,
-                    sets=[self._map_session_set_to_dto(ss) for ss in se.sets],
-                )
-                for se in session.exercises
-            ],
+            exercises=[_map_session_exercise(se) for se in session.exercises],
         )
 
     def _map_session_set_to_dto(self, ss: SessionSet) -> SessionSetDTO:
@@ -134,47 +135,48 @@ class CalendarService:
         )
 
     def _map_routine_to_dto(self, routine: Routine) -> RoutineDTO:
+        def _map_routine_exercise(re: RoutineExercise) -> RoutineExerciseDTO:
+            mgs = re.exercise.muscle_groups if re.exercise.muscle_groups is not None else []
+            return RoutineExerciseDTO(
+                id=re.id,
+                exercise=ExerciseDTO(
+                    id=re.exercise.id,
+                    name=re.exercise.name,
+                    description=re.exercise.description,
+                    equipment=re.exercise.equipment,
+                    muscle_groups=[
+                        ExerciseMuscleGroupDTO(
+                            muscle_group=MuscleGroupDTO(
+                                id=mg.muscle_group.id, name=mg.muscle_group.name
+                            ),
+                            role=mg.role,
+                        )
+                        for mg in mgs
+                    ],
+                ),
+                order=re.order,
+                superset_group=re.superset_group,
+                rest_seconds=re.rest_seconds,
+                notes=re.notes,
+                sets=[
+                    RoutineSetDTO(
+                        id=rs.id,
+                        set_number=rs.set_number,
+                        set_type=rs.set_type,
+                        target_reps_min=rs.target_reps_min,
+                        target_reps_max=rs.target_reps_max,
+                        target_rir=rs.target_rir,
+                        target_weight_kg=rs.target_weight_kg,
+                        weight_reduction_pct=rs.weight_reduction_pct,
+                        rest_seconds=rs.rest_seconds,
+                    )
+                    for rs in re.sets
+                ],
+            )
+
         return RoutineDTO(
             id=routine.id,
             name=routine.name,
             description=routine.description,
-            exercises=[
-                RoutineExerciseDTO(
-                    id=re.id,
-                    exercise=ExerciseDTO(
-                        id=re.exercise.id,
-                        name=re.exercise.name,
-                        description=re.exercise.description,
-                        equipment=re.exercise.equipment,
-                        muscle_groups=[
-                            ExerciseMuscleGroupDTO(
-                                muscle_group=MuscleGroupDTO(
-                                    id=mg.muscle_group.id, name=mg.muscle_group.name
-                                ),
-                                role=mg.role,
-                            )
-                            for mg in re.exercise.muscle_groups
-                        ],
-                    ),
-                    order=re.order,
-                    superset_group=re.superset_group,
-                    rest_seconds=re.rest_seconds,
-                    notes=re.notes,
-                    sets=[
-                        RoutineSetDTO(
-                            id=rs.id,
-                            set_number=rs.set_number,
-                            set_type=rs.set_type,
-                            target_reps_min=rs.target_reps_min,
-                            target_reps_max=rs.target_reps_max,
-                            target_rir=rs.target_rir,
-                            target_weight_kg=rs.target_weight_kg,
-                            weight_reduction_pct=rs.weight_reduction_pct,
-                            rest_seconds=rs.rest_seconds,
-                        )
-                        for rs in re.sets
-                    ],
-                )
-                for re in routine.exercises
-            ],
+            exercises=[_map_routine_exercise(re) for re in routine.exercises],
         )

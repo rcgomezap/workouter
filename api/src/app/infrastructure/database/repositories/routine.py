@@ -65,7 +65,7 @@ class SQLAlchemyRoutineRepository(
                 name=re_model.exercise.name,
                 description=re_model.exercise.description,
                 equipment=re_model.exercise.equipment,
-                muscle_groups=[],
+                muscle_groups=None,
             )
             sets = [
                 RoutineSet(
@@ -167,7 +167,7 @@ class SQLAlchemyRoutineRepository(
                         name=re_model.exercise.name,
                         description=re_model.exercise.description,
                         equipment=re_model.exercise.equipment,
-                        muscle_groups=[],
+                        muscle_groups=None,
                     )
 
                 if exercise is None:
@@ -176,7 +176,7 @@ class SQLAlchemyRoutineRepository(
                     exercise = Exercise(
                         id=re_model.exercise_id,
                         name="Unknown Exercise",
-                        muscle_groups=[],
+                        muscle_groups=None,
                     )
 
                 exercises.append(

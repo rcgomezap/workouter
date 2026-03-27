@@ -16,4 +16,4 @@ class Exercise(TimestampedEntity):
     name: str
     description: str | None = None
     equipment: str | None = None
-    muscle_groups: list[ExerciseMuscleGroup] = []
+    muscle_groups: list[ExerciseMuscleGroup] | None = None

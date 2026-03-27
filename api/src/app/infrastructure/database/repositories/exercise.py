@@ -81,22 +81,25 @@ class SQLAlchemyExerciseRepository(
 
         self._update_model(model_obj, entity)
 
-        await self._session.execute(
-            delete(exercise_muscle_group).where(exercise_muscle_group.c.exercise_id == entity.id)
-        )
-
-        if entity.muscle_groups:
+        if entity.muscle_groups is not None:
             await self._session.execute(
-                insert(exercise_muscle_group),
-                [
-                    {
-                        "exercise_id": entity.id,
-                        "muscle_group_id": mg.muscle_group.id,
-                        "role": mg.role,
-                    }
-                    for mg in entity.muscle_groups
-                ],
+                delete(exercise_muscle_group).where(
+                    exercise_muscle_group.c.exercise_id == entity.id
+                )
             )
+
+            if entity.muscle_groups:
+                await self._session.execute(
+                    insert(exercise_muscle_group),
+                    [
+                        {
+                            "exercise_id": entity.id,
+                            "muscle_group_id": mg.muscle_group.id,
+                            "role": mg.role,
+                        }
+                        for mg in entity.muscle_groups
+                    ],
+                )
 
         await self._session.flush()
         await self._session.refresh(model_obj)
@@ -114,7 +117,7 @@ class SQLAlchemyExerciseRepository(
             equipment=model_obj.equipment,
             created_at=model_obj.created_at,
             updated_at=model_obj.updated_at,
-            muscle_groups=[],  # TODO: Map muscle groups with roles
+            muscle_groups=None,
         )
 
     def _to_model(self, entity: Exercise) -> ExerciseTable:

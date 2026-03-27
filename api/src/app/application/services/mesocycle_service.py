@@ -18,7 +18,7 @@ from app.application.dto.pagination import PaginationInput
 from app.application.dto.routine import RoutineDTO, RoutineExerciseDTO, RoutineSetDTO
 from app.application.interfaces.unit_of_work import UnitOfWork
 from app.domain.entities.mesocycle import Mesocycle, MesocycleWeek, PlannedSession
-from app.domain.entities.routine import Routine
+from app.domain.entities.routine import Routine, RoutineExercise
 from app.domain.enums import MesocycleStatus
 from app.domain.exceptions import EntityNotFoundException
 
@@ -306,48 +306,49 @@ class MesocycleService:
         )
 
     def _map_routine_to_dto(self, routine: Routine) -> RoutineDTO:
+        def _map_routine_exercise(re: RoutineExercise) -> RoutineExerciseDTO:
+            mgs = re.exercise.muscle_groups if re.exercise.muscle_groups is not None else []
+            return RoutineExerciseDTO(
+                id=re.id,
+                exercise=ExerciseDTO(
+                    id=re.exercise.id,
+                    name=re.exercise.name,
+                    description=re.exercise.description,
+                    equipment=re.exercise.equipment,
+                    muscle_groups=[
+                        ExerciseMuscleGroupDTO(
+                            muscle_group=MuscleGroupDTO(
+                                id=mg.muscle_group.id, name=mg.muscle_group.name
+                            ),
+                            role=mg.role,
+                        )
+                        for mg in mgs
+                    ],
+                ),
+                order=re.order,
+                superset_group=re.superset_group,
+                rest_seconds=re.rest_seconds,
+                notes=re.notes,
+                sets=[
+                    RoutineSetDTO(
+                        id=rs.id,
+                        set_number=rs.set_number,
+                        set_type=rs.set_type,
+                        target_reps_min=rs.target_reps_min,
+                        target_reps_max=rs.target_reps_max,
+                        target_rir=rs.target_rir,
+                        target_weight_kg=rs.target_weight_kg,
+                        weight_reduction_pct=rs.weight_reduction_pct,
+                        rest_seconds=rs.rest_seconds,
+                    )
+                    for rs in re.sets
+                ],
+            )
+
         # Map full routine including exercises and sets
         return RoutineDTO(
             id=routine.id,
             name=routine.name,
             description=routine.description,
-            exercises=[
-                RoutineExerciseDTO(
-                    id=re.id,
-                    exercise=ExerciseDTO(
-                        id=re.exercise.id,
-                        name=re.exercise.name,
-                        description=re.exercise.description,
-                        equipment=re.exercise.equipment,
-                        muscle_groups=[
-                            ExerciseMuscleGroupDTO(
-                                muscle_group=MuscleGroupDTO(
-                                    id=mg.muscle_group.id, name=mg.muscle_group.name
-                                ),
-                                role=mg.role,
-                            )
-                            for mg in re.exercise.muscle_groups
-                        ],
-                    ),
-                    order=re.order,
-                    superset_group=re.superset_group,
-                    rest_seconds=re.rest_seconds,
-                    notes=re.notes,
-                    sets=[
-                        RoutineSetDTO(
-                            id=rs.id,
-                            set_number=rs.set_number,
-                            set_type=rs.set_type,
-                            target_reps_min=rs.target_reps_min,
-                            target_reps_max=rs.target_reps_max,
-                            target_rir=rs.target_rir,
-                            target_weight_kg=rs.target_weight_kg,
-                            weight_reduction_pct=rs.weight_reduction_pct,
-                            rest_seconds=rs.rest_seconds,
-                        )
-                        for rs in re.sets
-                    ],
-                )
-                for re in routine.exercises
-            ],
+            exercises=[_map_routine_exercise(re) for re in routine.exercises],
         )
