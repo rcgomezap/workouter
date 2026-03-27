@@ -5,6 +5,8 @@ from pydantic import BaseModel
 
 class WeeklyVolume(BaseModel):
     week_number: int
+    muscle_group_id: UUID
+    muscle_group_name: str
     sets_count: int
 
 

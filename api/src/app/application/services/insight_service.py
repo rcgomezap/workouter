@@ -42,7 +42,8 @@ class InsightService:
             # Map week_id to week_number
             week_map = {w.id: w.week_number for w in mesocycle.weeks}
 
-            weekly_sets: defaultdict[int, int] = defaultdict(int)
+            # Key: (week_number, muscle_group_id, muscle_group_name)
+            weekly_sets: defaultdict[tuple[int, UUID, str], int] = defaultdict(int)
             muscle_group_sets: defaultdict[tuple[UUID, str], int] = defaultdict(int)
             total_sets = 0
 
@@ -65,31 +66,48 @@ class InsightService:
                     continue
 
                 for ex in session.exercises:
-                    # Filter by muscle group if requested
-                    is_target = False
-                    mg_ids = [mg.muscle_group.id for mg in ex.exercise.muscle_groups]
+                    # Skip exercises with no muscle groups assigned
+                    if not ex.exercise.muscle_groups:
+                        continue
 
-                    if muscle_group_id is None or muscle_group_id in mg_ids:
-                        is_target = True
+                    # Get working sets count
+                    working_sets = len([s for s in ex.sets if s.actual_reps is not None])
+                    if working_sets == 0:
+                        continue
 
-                    if is_target:
-                        working_sets = len([s for s in ex.sets if s.actual_reps is not None])
-                        weekly_sets[week_num] += working_sets
-                        total_sets += working_sets
+                    # Count sets for each muscle group (PRIMARY and SECONDARY)
+                    for mg_info in ex.exercise.muscle_groups:
+                        mg_id = mg_info.muscle_group.id
+                        mg_name = mg_info.muscle_group.name
 
-                        for mg_info in ex.exercise.muscle_groups:
-                            muscle_group_sets[
-                                (mg_info.muscle_group.id, mg_info.muscle_group.name)
-                            ] += working_sets
+                        # Apply filter if provided
+                        if muscle_group_id is not None and mg_id != muscle_group_id:
+                            continue
 
+                        # Aggregate by (week, muscle_group_id, muscle_group_name)
+                        weekly_sets[(week_num, mg_id, mg_name)] += working_sets
+
+                        # Also track overall muscle group totals
+                        muscle_group_sets[(mg_id, mg_name)] += working_sets
+
+            # Calculate total sets (sum across all muscle groups)
+            # Note: exercises with multiple muscle groups count the same set multiple times.
+            total_sets = sum(muscle_group_sets.values())
+
+            # Create WeeklyVolume entries, sorted by week then muscle group name
             weekly_volumes = [
-                WeeklyVolume(week_number=wn, sets_count=count)
-                for wn, count in sorted(weekly_sets.items())
+                WeeklyVolume(
+                    week_number=key[0],
+                    muscle_group_id=key[1],
+                    muscle_group_name=key[2],
+                    sets_count=count,
+                )
+                for key, count in sorted(weekly_sets.items(), key=lambda x: (x[0][0], x[0][2]))
             ]
 
             muscle_group_breakdown = [
                 MuscleGroupVolume(muscle_group_id=mg[0], muscle_group_name=mg[1], sets_count=count)
-                for mg, count in muscle_group_sets.items()
+                for mg, count in sorted(muscle_group_sets.items(), key=lambda x: x[0][1])
             ]
 
             return VolumeInsight(

@@ -6,6 +6,8 @@ import strawberry
 @strawberry.type
 class WeeklyVolume:
     week_number: int
+    muscle_group_id: UUID
+    muscle_group_name: str
     set_count: int
 
 
