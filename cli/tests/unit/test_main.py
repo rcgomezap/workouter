@@ -1,3 +1,5 @@
+import json
+
 from click.testing import CliRunner
 
 from workouter_cli.main import cli
@@ -16,7 +18,7 @@ def test_ping_exits_with_auth_code_when_api_key_missing() -> None:
     result = runner.invoke(cli, ["ping"])
 
     assert result.exit_code == 3
-    assert "WORKOUTER_API_KEY" in result.output
+    assert "WORKOUTER_API_KEY" in result.stderr
 
 
 def test_ping_exits_with_user_error_when_url_is_invalid() -> None:
@@ -29,7 +31,7 @@ def test_ping_exits_with_user_error_when_url_is_invalid() -> None:
     result = runner.invoke(cli, ["ping"])
 
     assert result.exit_code == 1
-    assert "Invalid CLI configuration" in result.output
+    assert "Invalid CLI configuration" in result.stderr
 
 
 def test_ping_with_valid_env_returns_ready() -> None:
@@ -44,4 +46,21 @@ def test_ping_with_valid_env_returns_ready() -> None:
     result = runner.invoke(cli, ["ping"])
 
     assert result.exit_code == 0
-    assert "ready" in result.output
+    assert "message" in result.output
+
+
+def test_ping_json_output_has_expected_shape() -> None:
+    runner = CliRunner(
+        env={
+            "WORKOUTER_API_URL": "http://localhost:8000/graphql",
+            "WORKOUTER_API_KEY": "test-api-key",
+            "WORKOUTER_CLI_TIMEOUT": "30",
+            "WORKOUTER_CLI_LOG_LEVEL": "INFO",
+        }
+    )
+    result = runner.invoke(cli, ["--json", "ping"])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output.strip())
+    assert payload["success"] is True
+    assert payload["data"]["message"] == "ready"
