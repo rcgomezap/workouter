@@ -1,0 +1,1 @@
+"""Domain repository protocols package."""

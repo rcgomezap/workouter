@@ -27,7 +27,7 @@ test-integration: ## Run integration tests only
 
 test-cov: ## Run tests with coverage report
 	@echo "Running tests with coverage..."
-	uv run pytest --cov=workouter_cli --cov-report=term-missing --cov-report=html
+	uv run pytest --cov=workouter_cli --cov-report=term-missing --cov-report=html --cov-fail-under=85
 
 test-quick: ## Run tests with minimal output (CI-friendly)
 	@echo "Running tests (minimal output)..."
