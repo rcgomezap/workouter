@@ -6,6 +6,7 @@ from strawberry.types import Info
 from app.application.dto.exercise import CreateExerciseInput as CreateExerciseDTO
 from app.application.dto.exercise import MuscleGroupAssignmentInput as MuscleGroupAssignmentDTO
 from app.application.dto.exercise import UpdateExerciseInput as UpdateExerciseDTO
+from app.domain.enums import MuscleRole as DomainMuscleRole
 from app.presentation.graphql.context import Context
 from app.presentation.graphql.inputs.exercise import (
     CreateExerciseInput,
@@ -53,7 +54,10 @@ class ExerciseMutation:
         muscle_group_ids: list[MuscleGroupAssignmentInput],
     ) -> Exercise:
         dtos = [
-            MuscleGroupAssignmentDTO(muscle_group_id=m.muscle_group_id, role=m.role)
+            MuscleGroupAssignmentDTO(
+                muscle_group_id=m.muscle_group_id,
+                role=DomainMuscleRole(m.role.value),
+            )
             for m in muscle_group_ids
         ]
         e = await info.context.exercise_service.assign_muscle_groups(exercise_id, dtos)

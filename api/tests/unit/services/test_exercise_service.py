@@ -122,6 +122,23 @@ async def test_update_exercise_full_fields(service, mock_uow):
 
 
 @pytest.mark.asyncio
+async def test_update_exercise_preserves_unloaded_muscle_groups(service, mock_uow):
+    ex_id = uuid4()
+    existing_ex = Exercise(id=ex_id, name="Old Name", muscle_groups=None)
+    update_input = UpdateExerciseInput(name="New Name")
+
+    mock_uow.exercise_repository.get_by_id = AsyncMock(return_value=existing_ex)
+    mock_uow.exercise_repository.update = AsyncMock(return_value=existing_ex)
+    mock_uow.commit = AsyncMock()
+
+    await service.update_exercise(ex_id, update_input)
+
+    updated_entity = mock_uow.exercise_repository.update.call_args.args[0]
+    assert updated_entity.muscle_groups is None
+    mock_uow.commit.assert_called_once()
+
+
+@pytest.mark.asyncio
 async def test_update_exercise_not_found(service, mock_uow):
     # Arrange
     ex_id = uuid4()

@@ -103,6 +103,7 @@ class ExerciseService:
             return self._map_to_dto(exercise)
 
     def _map_to_dto(self, exercise: Exercise) -> ExerciseDTO:
+        muscle_groups = exercise.muscle_groups if exercise.muscle_groups is not None else []
         return ExerciseDTO(
             id=exercise.id,
             name=exercise.name,
@@ -113,6 +114,6 @@ class ExerciseService:
                     muscle_group=MuscleGroupDTO(id=mg.muscle_group.id, name=mg.muscle_group.name),
                     role=mg.role,
                 )
-                for mg in exercise.muscle_groups
+                for mg in muscle_groups
             ],
         )

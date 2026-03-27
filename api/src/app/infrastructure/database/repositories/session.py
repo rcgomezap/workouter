@@ -285,7 +285,7 @@ class SQLAlchemySessionRepository(
             exercise_domain = Exercise(
                 id=model_obj.exercise_id,
                 name="Unknown Exercise",
-                muscle_groups=[],
+                muscle_groups=None,
             )
 
         return SessionExercise(

@@ -284,6 +284,12 @@ class SessionService:
             updated_se = await self.uow.session_repository.update_exercise(session_exercise)
             await self.uow.commit()
 
+            updated_mgs = (
+                updated_se.exercise.muscle_groups
+                if updated_se.exercise.muscle_groups is not None
+                else []
+            )
+
             return SessionExerciseDTO(
                 id=updated_se.id,
                 exercise=ExerciseDTO(
@@ -298,7 +304,7 @@ class SessionService:
                             ),
                             role=mg.role,
                         )
-                        for mg in updated_se.exercise.muscle_groups
+                        for mg in updated_mgs
                     ],
                 ),
                 order=updated_se.order,
@@ -352,6 +358,11 @@ class SessionService:
                 raise EntityNotFoundException("SessionExercise", session_exercise_id)
 
             # Map to DTO
+            session_mgs = (
+                session_exercise.exercise.muscle_groups
+                if session_exercise.exercise.muscle_groups is not None
+                else []
+            )
             return SessionExerciseDTO(
                 id=session_exercise.id,
                 exercise=ExerciseDTO(
@@ -366,7 +377,7 @@ class SessionService:
                             ),
                             role=mg.role,
                         )
-                        for mg in session_exercise.exercise.muscle_groups
+                        for mg in session_mgs
                     ],
                 ),
                 order=session_exercise.order,
@@ -412,6 +423,32 @@ class SessionService:
             return True
 
     def _map_to_dto(self, session: Session) -> SessionDTO:
+        def _map_session_exercise_to_dto(se: SessionExercise) -> SessionExerciseDTO:
+            se_mgs = se.exercise.muscle_groups if se.exercise.muscle_groups is not None else []
+            return SessionExerciseDTO(
+                id=se.id,
+                exercise=ExerciseDTO(
+                    id=se.exercise.id,
+                    name=se.exercise.name,
+                    description=se.exercise.description,
+                    equipment=se.exercise.equipment,
+                    muscle_groups=[
+                        ExerciseMuscleGroupDTO(
+                            muscle_group=MuscleGroupDTO(
+                                id=mg.muscle_group.id, name=mg.muscle_group.name
+                            ),
+                            role=mg.role,
+                        )
+                        for mg in se_mgs
+                    ],
+                ),
+                order=se.order,
+                superset_group=se.superset_group,
+                rest_seconds=se.rest_seconds,
+                notes=se.notes,
+                sets=[self._map_set_to_dto(ss) for ss in se.sets],
+            )
+
         return SessionDTO(
             id=session.id,
             planned_session_id=session.planned_session_id,
@@ -421,32 +458,7 @@ class SessionService:
             started_at=session.started_at,
             completed_at=session.completed_at,
             notes=session.notes,
-            exercises=[
-                SessionExerciseDTO(
-                    id=se.id,
-                    exercise=ExerciseDTO(
-                        id=se.exercise.id,
-                        name=se.exercise.name,
-                        description=se.exercise.description,
-                        equipment=se.exercise.equipment,
-                        muscle_groups=[
-                            ExerciseMuscleGroupDTO(
-                                muscle_group=MuscleGroupDTO(
-                                    id=mg.muscle_group.id, name=mg.muscle_group.name
-                                ),
-                                role=mg.role,
-                            )
-                            for mg in se.exercise.muscle_groups
-                        ],
-                    ),
-                    order=se.order,
-                    superset_group=se.superset_group,
-                    rest_seconds=se.rest_seconds,
-                    notes=se.notes,
-                    sets=[self._map_set_to_dto(ss) for ss in se.sets],
-                )
-                for se in session.exercises
-            ],
+            exercises=[_map_session_exercise_to_dto(se) for se in session.exercises],
         )
 
     def _map_set_to_dto(self, ss: SessionSet) -> SessionSetDTO:
