@@ -1,8 +1,15 @@
 name: API Test CI
 
 on:
+  push:
+    branches: ["main"]
+    paths:
+      - "api/**"
+      - ".github/workflows/api-ci.yml"
   pull_request:
-    branches: [ "main" ]
+    paths:
+      - "api/**"
+      - ".github/workflows/api-ci.yml"
 
 jobs:
   test:
