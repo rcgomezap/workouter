@@ -22,6 +22,19 @@ class SessionRepository(Protocol):
         """Complete one session."""
         ...
 
+    async def update(self, session_id: str, payload: dict[str, str | None]) -> Session:
+        """Update one session."""
+        ...
+
+    async def list(
+        self,
+        page: int = 1,
+        page_size: int = 20,
+        status: str | None = None,
+    ) -> tuple[list[Session], dict[str, int]]:
+        """List sessions and return items with pagination metadata."""
+        ...
+
     async def log_set(
         self, set_id: str, payload: dict[str, int | float | str | None]
     ) -> SessionSet:

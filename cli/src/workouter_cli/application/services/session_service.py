@@ -21,6 +21,17 @@ class SessionService:
     async def complete(self, session_id: str) -> Session:
         return await self.session_repository.complete(session_id)
 
+    async def update(self, session_id: str, payload: dict[str, str | None]) -> Session:
+        return await self.session_repository.update(session_id, payload)
+
+    async def list(
+        self,
+        page: int = 1,
+        page_size: int = 20,
+        status: str | None = None,
+    ) -> tuple[list[Session], dict[str, int]]:
+        return await self.session_repository.list(page=page, page_size=page_size, status=status)
+
     async def log_set(
         self, set_id: str, payload: dict[str, int | float | str | None]
     ) -> SessionSet:

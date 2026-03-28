@@ -14,7 +14,9 @@ from workouter_cli.infrastructure.graphql.mutations.session import (
     CREATE_SESSION,
     LOG_SET_RESULT,
     START_SESSION,
+    UPDATE_SESSION,
 )
+from workouter_cli.infrastructure.graphql.queries.session import LIST_SESSIONS
 
 
 class GraphQLSessionRepository(SessionRepository):
@@ -34,6 +36,31 @@ class GraphQLSessionRepository(SessionRepository):
     async def complete(self, session_id: str) -> Session:
         result = await self.client.execute(COMPLETE_SESSION, {"id": session_id})
         return map_session(result["completeSession"])
+
+    async def update(self, session_id: str, payload: dict[str, str | None]) -> Session:
+        result = await self.client.execute(UPDATE_SESSION, {"id": session_id, "input": payload})
+        return map_session(result["updateSession"])
+
+    async def list(
+        self,
+        page: int = 1,
+        page_size: int = 20,
+        status: str | None = None,
+    ) -> tuple[list[Session], dict[str, int]]:
+        variables = {
+            "pagination": {"page": page, "pageSize": page_size},
+            "status": status,
+        }
+        result = await self.client.execute(LIST_SESSIONS, variables)
+        payload = result["sessions"]
+        items = [map_session(item) for item in payload["items"]]
+        pagination = {
+            "total": int(payload["total"]),
+            "page": int(payload["page"]),
+            "pageSize": int(payload["pageSize"]),
+            "totalPages": int(payload["totalPages"]),
+        }
+        return items, pagination
 
     async def log_set(
         self, set_id: str, payload: dict[str, int | float | str | None]
