@@ -6,11 +6,18 @@ from workouter_cli.infrastructure.graphql.mutations.exercise import (
     UPDATE_EXERCISE,
 )
 from workouter_cli.infrastructure.graphql.mutations.session import (
+    ADD_SESSION_EXERCISE,
+    ADD_SESSION_SET,
     COMPLETE_SESSION,
     CREATE_SESSION,
+    DELETE_SESSION,
     LOG_SET_RESULT,
+    REMOVE_SESSION_EXERCISE,
+    REMOVE_SESSION_SET,
     START_SESSION,
+    UPDATE_SESSION_EXERCISE,
     UPDATE_SESSION,
+    UPDATE_SESSION_SET,
 )
 
 __all__ = [
@@ -21,5 +28,12 @@ __all__ = [
     "START_SESSION",
     "COMPLETE_SESSION",
     "UPDATE_SESSION",
+    "DELETE_SESSION",
+    "ADD_SESSION_EXERCISE",
+    "UPDATE_SESSION_EXERCISE",
+    "REMOVE_SESSION_EXERCISE",
+    "ADD_SESSION_SET",
+    "UPDATE_SESSION_SET",
+    "REMOVE_SESSION_SET",
     "LOG_SET_RESULT",
 ]

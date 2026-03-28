@@ -20,6 +20,7 @@ from workouter_cli.infrastructure.repositories.calendar import GraphQLCalendarRe
 from workouter_cli.infrastructure.repositories.exercise import GraphQLExerciseRepository
 from workouter_cli.infrastructure.repositories.session import GraphQLSessionRepository
 from workouter_cli.presentation.commands.exercises import exercises
+from workouter_cli.presentation.commands.sessions import sessions
 from workouter_cli.presentation.commands.workout import workout
 from workouter_cli.presentation.context import CLIContext
 from workouter_cli.presentation.middleware.error_handler import (
@@ -243,4 +244,5 @@ def raise_auth() -> None:
 
 
 cli.add_command(exercises)
+cli.add_command(sessions)
 cli.add_command(workout)

@@ -86,3 +86,25 @@ def test_schema_unknown_command_fails() -> None:
 
     assert result.exit_code != 0
     assert "Unknown command" in result.output
+
+
+def test_help_includes_sessions_command_group() -> None:
+    runner = CliRunner()
+    result = runner.invoke(cli, ["--help"])
+
+    assert result.exit_code == 0
+    assert "sessions" in result.output
+
+
+def test_schema_sessions_list_outputs_machine_readable_definition() -> None:
+    runner = CliRunner()
+    result = runner.invoke(cli, ["schema", "sessions list"])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output.strip())
+    assert payload["command"] == "sessions list"
+    assert payload["description"] == "List sessions."
+
+    option_names = {option["name"] for option in payload["options"]}
+    assert "--status" in option_names
+    assert "--mesocycle-id" in option_names
