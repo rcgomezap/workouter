@@ -11,6 +11,7 @@ from rich.console import Console
 from workouter_cli.application.formatters.factory import get_formatter
 from workouter_cli.application.services.calendar_service import CalendarService
 from workouter_cli.application.services.exercise_service import ExerciseService
+from workouter_cli.application.services.routine_service import RoutineService
 from workouter_cli.application.services.session_service import SessionService
 from workouter_cli.application.services.workflow_service import WorkflowService
 from workouter_cli.domain.exceptions import AuthError, CLIError
@@ -18,8 +19,10 @@ from workouter_cli.infrastructure.config.loader import ConfigError, load_config
 from workouter_cli.infrastructure.graphql.client import GraphQLClient
 from workouter_cli.infrastructure.repositories.calendar import GraphQLCalendarRepository
 from workouter_cli.infrastructure.repositories.exercise import GraphQLExerciseRepository
+from workouter_cli.infrastructure.repositories.routine import GraphQLRoutineRepository
 from workouter_cli.infrastructure.repositories.session import GraphQLSessionRepository
 from workouter_cli.presentation.commands.exercises import exercises
+from workouter_cli.presentation.commands.routines import routines
 from workouter_cli.presentation.commands.sessions import sessions
 from workouter_cli.presentation.commands.workout import workout
 from workouter_cli.presentation.context import CLIContext
@@ -127,8 +130,9 @@ def _build_schema(command_name: str) -> dict[str, Any]:
                 "required": parameter.required,
                 "description": parameter.help or "",
             }
-            if parameter.default is not None:
-                option_schema["default"] = parameter.default
+            default_value = parameter.default
+            if isinstance(default_value, (str, int, float, bool, list, dict, tuple)):
+                option_schema["default"] = default_value
             options.append(option_schema)
             if parameter.required and flag_name.startswith("--"):
                 required_flags.append(flag_name)
@@ -184,9 +188,11 @@ def cli(ctx: click.Context, output_json: bool, timeout: int | None) -> None:
             url=str(config.api_url), api_key=config.api_key, timeout=effective_timeout
         )
         exercise_repository = GraphQLExerciseRepository(client=client)
+        routine_repository = GraphQLRoutineRepository(client=client)
         session_repository = GraphQLSessionRepository(client=client)
         calendar_repository = GraphQLCalendarRepository(client=client)
         exercise_service = ExerciseService(exercise_repository=exercise_repository)
+        routine_service = RoutineService(routine_repository=routine_repository)
         session_service = SessionService(session_repository=session_repository)
         calendar_service = CalendarService(calendar_repository=calendar_repository)
         workflow_service = WorkflowService(
@@ -199,6 +205,7 @@ def cli(ctx: click.Context, output_json: bool, timeout: int | None) -> None:
             output_json=output_json,
             timeout=effective_timeout,
             exercise_service=exercise_service,
+            routine_service=routine_service,
             session_service=session_service,
             calendar_service=calendar_service,
             workflow_service=workflow_service,
@@ -244,5 +251,6 @@ def raise_auth() -> None:
 
 
 cli.add_command(exercises)
+cli.add_command(routines)
 cli.add_command(sessions)
 cli.add_command(workout)
