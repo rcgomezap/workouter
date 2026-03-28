@@ -6,9 +6,15 @@ from workouter_cli.infrastructure.graphql.mutations.exercise import (
     UPDATE_EXERCISE,
 )
 from workouter_cli.infrastructure.graphql.mutations.mesocycle import (
+    ADD_MESOCYCLE_WEEK,
+    ADD_PLANNED_SESSION,
     CREATE_MESOCYCLE,
     DELETE_MESOCYCLE,
+    REMOVE_MESOCYCLE_WEEK,
+    REMOVE_PLANNED_SESSION,
     UPDATE_MESOCYCLE,
+    UPDATE_MESOCYCLE_WEEK,
+    UPDATE_PLANNED_SESSION,
 )
 from workouter_cli.infrastructure.graphql.mutations.routine import (
     ADD_ROUTINE_EXERCISE,
@@ -40,6 +46,12 @@ __all__ = [
     "CREATE_MESOCYCLE",
     "UPDATE_MESOCYCLE",
     "DELETE_MESOCYCLE",
+    "ADD_MESOCYCLE_WEEK",
+    "UPDATE_MESOCYCLE_WEEK",
+    "REMOVE_MESOCYCLE_WEEK",
+    "ADD_PLANNED_SESSION",
+    "UPDATE_PLANNED_SESSION",
+    "REMOVE_PLANNED_SESSION",
     "ADD_ROUTINE_EXERCISE",
     "UPDATE_ROUTINE_EXERCISE",
     "REMOVE_ROUTINE_EXERCISE",

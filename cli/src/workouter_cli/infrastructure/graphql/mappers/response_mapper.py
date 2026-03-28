@@ -6,7 +6,11 @@ from typing import Any
 
 from workouter_cli.domain.entities.exercise import Exercise, ExerciseMuscleGroup, MuscleGroup
 from workouter_cli.domain.entities.calendar import CalendarDay, PlannedSession
-from workouter_cli.domain.entities.mesocycle import Mesocycle, MesocycleWeek
+from workouter_cli.domain.entities.mesocycle import (
+    Mesocycle,
+    MesocyclePlannedSession,
+    MesocycleWeek,
+)
 from workouter_cli.domain.entities.routine import Routine, RoutineExercise, RoutineSet
 from workouter_cli.domain.entities.session import Session, SessionExercise, SessionSet
 
@@ -162,6 +166,23 @@ def map_mesocycle_week(data: dict[str, Any]) -> MesocycleWeek:
         week_type=str(data["weekType"]),
         start_date=str(data["startDate"]),
         end_date=str(data["endDate"]),
+        planned_sessions=tuple(
+            map_mesocycle_planned_session(item) for item in data.get("plannedSessions", [])
+        ),
+    )
+
+
+def map_mesocycle_planned_session(data: dict[str, Any]) -> MesocyclePlannedSession:
+    """Map GraphQL mesocycle planned session payload to domain entity."""
+
+    routine = data.get("routine")
+    return MesocyclePlannedSession(
+        id=str(data["id"]),
+        routine_id=str(routine["id"]) if routine is not None else None,
+        routine_name=str(routine["name"]) if routine is not None else None,
+        day_of_week=int(data["dayOfWeek"]),
+        date=str(data["date"]),
+        notes=str(data["notes"]) if data.get("notes") is not None else None,
     )
 
 

@@ -166,3 +166,31 @@ def test_schema_mesocycles_list_outputs_machine_readable_definition() -> None:
     option_names = {option["name"] for option in payload["options"]}
     assert "--page" in option_names
     assert "--status" in option_names
+
+
+def test_schema_mesocycles_add_week_outputs_machine_readable_definition() -> None:
+    runner = CliRunner()
+    result = runner.invoke(cli, ["schema", "mesocycles add-week"])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output.strip())
+    assert payload["command"] == "mesocycles add-week"
+    assert payload["description"] == "Add one planning week to a mesocycle."
+
+    option_names = {option["name"] for option in payload["options"]}
+    assert "--week-number" in option_names
+    assert "--week-type" in option_names
+
+
+def test_schema_mesocycles_add_session_outputs_machine_readable_definition() -> None:
+    runner = CliRunner()
+    result = runner.invoke(cli, ["schema", "mesocycles add-session"])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output.strip())
+    assert payload["command"] == "mesocycles add-session"
+    assert payload["description"] == "Add one planned session to a mesocycle week."
+
+    option_names = {option["name"] for option in payload["options"]}
+    assert "--day-of-week" in option_names
+    assert "--routine-id" in option_names
