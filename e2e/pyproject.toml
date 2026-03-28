@@ -1,0 +1,12 @@
+[project]
+name = "workouter-e2e"
+version = "0.1.0"
+description = "End-to-end test harness for Workouter API + CLI"
+requires-python = ">=3.14"
+dependencies = [
+    "pytest>=8.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["."]
+addopts = "-q --tb=short --disable-warnings"

@@ -1,0 +1,45 @@
+name: E2E CI
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "api/**"
+      - "cli/**"
+      - "e2e/**"
+      - ".github/workflows/e2e-ci.yml"
+  pull_request:
+    paths:
+      - "api/**"
+      - "cli/**"
+      - "e2e/**"
+      - ".github/workflows/e2e-ci.yml"
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install API dependencies
+        run: uv sync
+        working-directory: ./api
+
+      - name: Install CLI dependencies
+        run: uv sync
+        working-directory: ./cli
+
+      - name: Install E2E dependencies
+        run: uv sync
+        working-directory: ./e2e
+
+      - name: Run E2E smoke tests
+        run: uv run pytest
+        working-directory: ./e2e
