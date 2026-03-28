@@ -78,6 +78,7 @@ workouter-cli --json exercises get <uuid> || echo "Exit code: $?"
 
 - **[DESIGN.md](./DESIGN.md)**: Comprehensive system design and architecture
 - **[AGENTS.md](./AGENTS.md)**: Setup, commands, and workflows for AI coding agents
+- **Agent Skill**: `cli/.agents/skills/workouter-coach/SKILL.md` for AI personal trainer workflows (planning, live tracking, bodyweight, progression, full command coverage)
 - **[API Schema](../api/schema.graphql)**: GraphQL schema reference
 
 ## Development
