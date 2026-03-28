@@ -4,7 +4,18 @@ from __future__ import annotations
 
 from typing import Any
 
+from workouter_cli.domain.entities.backup import BackupResult
+from workouter_cli.domain.entities.bodyweight import BodyweightLog
 from workouter_cli.domain.entities.exercise import Exercise, ExerciseMuscleGroup, MuscleGroup
+from workouter_cli.domain.entities.insight import (
+    IntensityInsight,
+    MuscleGroupVolume,
+    ProgressiveOverloadInsight,
+    VolumeInsight,
+    WeeklyExerciseProgress,
+    WeeklyIntensity,
+    WeeklyVolume,
+)
 from workouter_cli.domain.entities.calendar import CalendarDay, PlannedSession
 from workouter_cli.domain.entities.mesocycle import (
     Mesocycle,
@@ -230,4 +241,108 @@ def map_calendar_day(data: dict[str, Any]) -> CalendarDay:
         session_id=session_id,
         is_completed=bool(data["isCompleted"]),
         is_rest_day=bool(data["isRestDay"]),
+    )
+
+
+def map_bodyweight_log(data: dict[str, Any]) -> BodyweightLog:
+    """Map GraphQL bodyweight log payload to domain entity."""
+
+    return BodyweightLog(
+        id=str(data["id"]),
+        weight_kg=float(data["weightKg"]),
+        recorded_at=str(data["recordedAt"]),
+        notes=str(data["notes"]) if data.get("notes") is not None else None,
+        created_at=str(data["createdAt"]),
+    )
+
+
+def map_weekly_volume(data: dict[str, Any]) -> WeeklyVolume:
+    """Map weekly volume payload."""
+
+    return WeeklyVolume(
+        week_number=int(data["weekNumber"]),
+        muscle_group_id=str(data["muscleGroupId"]),
+        muscle_group_name=str(data["muscleGroupName"]),
+        set_count=int(data["setCount"]),
+    )
+
+
+def map_muscle_group_volume(data: dict[str, Any]) -> MuscleGroupVolume:
+    """Map muscle group volume payload."""
+
+    return MuscleGroupVolume(
+        muscle_group_id=str(data["muscleGroupId"]),
+        muscle_group_name=str(data["muscleGroupName"]),
+        total_sets=int(data["totalSets"]),
+    )
+
+
+def map_volume_insight(data: dict[str, Any]) -> VolumeInsight:
+    """Map volume insight payload."""
+
+    return VolumeInsight(
+        mesocycle_id=str(data["mesocycleId"]),
+        weekly_volumes=tuple(map_weekly_volume(item) for item in data.get("weeklyVolumes", [])),
+        total_sets=int(data["totalSets"]),
+        muscle_group_breakdown=tuple(
+            map_muscle_group_volume(item) for item in data.get("muscleGroupBreakdown", [])
+        ),
+    )
+
+
+def map_weekly_intensity(data: dict[str, Any]) -> WeeklyIntensity:
+    """Map weekly intensity payload."""
+
+    return WeeklyIntensity(
+        week_number=int(data["weekNumber"]),
+        avg_rir=float(data["avgRir"]),
+    )
+
+
+def map_intensity_insight(data: dict[str, Any]) -> IntensityInsight:
+    """Map intensity insight payload."""
+
+    return IntensityInsight(
+        mesocycle_id=str(data["mesocycleId"]),
+        weekly_intensities=tuple(
+            map_weekly_intensity(item) for item in data.get("weeklyIntensities", [])
+        ),
+        overall_avg_rir=float(data["overallAvgRir"]),
+    )
+
+
+def map_weekly_exercise_progress(data: dict[str, Any]) -> WeeklyExerciseProgress:
+    """Map weekly exercise progress payload."""
+
+    return WeeklyExerciseProgress(
+        week_number=int(data["weekNumber"]),
+        max_weight=float(data["maxWeight"]),
+        avg_reps=float(data["avgReps"]),
+        avg_rir=float(data["avgRir"]),
+    )
+
+
+def map_progressive_overload_insight(data: dict[str, Any]) -> ProgressiveOverloadInsight:
+    """Map progressive overload insight payload."""
+
+    return ProgressiveOverloadInsight(
+        exercise_id=str(data["exerciseId"]),
+        mesocycle_id=str(data["mesocycleId"]),
+        weekly_progress=tuple(
+            map_weekly_exercise_progress(item) for item in data.get("weeklyProgress", [])
+        ),
+        estimated_one_rep_max_progression=tuple(
+            float(item) for item in data.get("estimatedOneRepMaxProgression", [])
+        ),
+    )
+
+
+def map_backup_result(data: dict[str, Any]) -> BackupResult:
+    """Map backup result payload."""
+
+    return BackupResult(
+        success=bool(data["success"]),
+        filename=str(data["filename"]) if data.get("filename") is not None else None,
+        size_bytes=int(data["sizeBytes"]) if data.get("sizeBytes") is not None else None,
+        created_at=str(data["createdAt"]),
     )

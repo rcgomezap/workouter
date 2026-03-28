@@ -14,3 +14,6 @@ class CalendarService:
 
     async def day(self, date: str) -> CalendarDay:
         return await self.calendar_repository.day(date)
+
+    async def range(self, start_date: str, end_date: str) -> list[CalendarDay]:
+        return await self.calendar_repository.range(start_date, end_date)

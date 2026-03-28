@@ -13,3 +13,7 @@ class CalendarRepository(Protocol):
     async def day(self, date: str) -> CalendarDay:
         """Get a single calendar day by date."""
         ...
+
+    async def range(self, start_date: str, end_date: str) -> list[CalendarDay]:
+        """Get a calendar date range."""
+        ...

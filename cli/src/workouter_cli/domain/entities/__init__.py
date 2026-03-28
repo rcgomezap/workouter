@@ -1,7 +1,18 @@
 """Domain entities package."""
 
 from workouter_cli.domain.entities.calendar import CalendarDay, PlannedSession
+from workouter_cli.domain.entities.backup import BackupResult
+from workouter_cli.domain.entities.bodyweight import BodyweightLog
 from workouter_cli.domain.entities.exercise import Exercise, ExerciseMuscleGroup, MuscleGroup
+from workouter_cli.domain.entities.insight import (
+    IntensityInsight,
+    MuscleGroupVolume,
+    ProgressiveOverloadInsight,
+    VolumeInsight,
+    WeeklyExerciseProgress,
+    WeeklyIntensity,
+    WeeklyVolume,
+)
 from workouter_cli.domain.entities.mesocycle import (
     Mesocycle,
     MesocyclePlannedSession,
@@ -25,4 +36,13 @@ __all__ = [
     "Session",
     "PlannedSession",
     "CalendarDay",
+    "BodyweightLog",
+    "WeeklyVolume",
+    "MuscleGroupVolume",
+    "VolumeInsight",
+    "WeeklyIntensity",
+    "IntensityInsight",
+    "WeeklyExerciseProgress",
+    "ProgressiveOverloadInsight",
+    "BackupResult",
 ]

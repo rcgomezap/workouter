@@ -22,3 +22,27 @@ query CalendarDay($date: Date!) {
   }
 }
 """
+
+
+CALENDAR_RANGE = """
+query CalendarRange($startDate: Date!, $endDate: Date!) {
+  calendarRange(startDate: $startDate, endDate: $endDate) {
+    date
+    plannedSession {
+      id
+      routine {
+        id
+        name
+      }
+      dayOfWeek
+      date
+      notes
+    }
+    session {
+      id
+    }
+    isCompleted
+    isRestDay
+  }
+}
+"""

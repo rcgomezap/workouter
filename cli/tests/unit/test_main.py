@@ -112,6 +112,38 @@ def test_help_includes_mesocycles_command_group() -> None:
     assert "mesocycles" in result.output
 
 
+def test_help_includes_bodyweight_command_group() -> None:
+    runner = CliRunner()
+    result = runner.invoke(cli, ["--help"])
+
+    assert result.exit_code == 0
+    assert "bodyweight" in result.output
+
+
+def test_help_includes_insights_command_group() -> None:
+    runner = CliRunner()
+    result = runner.invoke(cli, ["--help"])
+
+    assert result.exit_code == 0
+    assert "insights" in result.output
+
+
+def test_help_includes_calendar_command_group() -> None:
+    runner = CliRunner()
+    result = runner.invoke(cli, ["--help"])
+
+    assert result.exit_code == 0
+    assert "calendar" in result.output
+
+
+def test_help_includes_backup_command_group() -> None:
+    runner = CliRunner()
+    result = runner.invoke(cli, ["--help"])
+
+    assert result.exit_code == 0
+    assert "backup" in result.output
+
+
 def test_schema_sessions_list_outputs_machine_readable_definition() -> None:
     runner = CliRunner()
     result = runner.invoke(cli, ["schema", "sessions list"])
