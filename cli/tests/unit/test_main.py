@@ -96,6 +96,14 @@ def test_help_includes_sessions_command_group() -> None:
     assert "sessions" in result.output
 
 
+def test_help_includes_routines_command_group() -> None:
+    runner = CliRunner()
+    result = runner.invoke(cli, ["--help"])
+
+    assert result.exit_code == 0
+    assert "routines" in result.output
+
+
 def test_schema_sessions_list_outputs_machine_readable_definition() -> None:
     runner = CliRunner()
     result = runner.invoke(cli, ["schema", "sessions list"])
@@ -108,3 +116,17 @@ def test_schema_sessions_list_outputs_machine_readable_definition() -> None:
     option_names = {option["name"] for option in payload["options"]}
     assert "--status" in option_names
     assert "--mesocycle-id" in option_names
+
+
+def test_schema_routines_add_set_outputs_machine_readable_definition() -> None:
+    runner = CliRunner()
+    result = runner.invoke(cli, ["schema", "routines add-set"])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output.strip())
+    assert payload["command"] == "routines add-set"
+    assert payload["description"] == "Add set to a routine exercise."
+
+    option_names = {option["name"] for option in payload["options"]}
+    assert "--set-number" in option_names
+    assert "--set-type" in option_names

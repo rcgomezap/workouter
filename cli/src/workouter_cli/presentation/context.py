@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 from workouter_cli.application.services.calendar_service import CalendarService
 from workouter_cli.application.services.exercise_service import ExerciseService
+from workouter_cli.application.services.routine_service import RoutineService
 from workouter_cli.application.services.session_service import SessionService
 from workouter_cli.application.services.workflow_service import WorkflowService
 from workouter_cli.infrastructure.config.schema import Config
@@ -21,6 +22,7 @@ class CLIContext:
     output_json: bool
     timeout: int
     exercise_service: ExerciseService
+    routine_service: RoutineService
     session_service: SessionService
     calendar_service: CalendarService
     workflow_service: WorkflowService
