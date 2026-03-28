@@ -42,6 +42,13 @@ make binary
 ./dist/workouter-cli --help
 ```
 
+For Linux distribution, the release pipeline publishes an AppImage artifact (`workouter-cli-linux-x86_64.AppImage`):
+
+```bash
+chmod +x workouter-cli-linux-x86_64.AppImage
+./workouter-cli-linux-x86_64.AppImage --help
+```
+
 ### Basic Usage
 
 ```bash
