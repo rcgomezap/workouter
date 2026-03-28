@@ -18,14 +18,20 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            artifact_name: workouter-cli-linux-x86_64
-            binary_path: cli/dist/workouter-cli
+            artifact_name: workouter-cli-linux-x86_64.AppImage
+            artifact_path: cli/dist/workouter-cli-linux-x86_64.AppImage
+            build_target: appimage
+            smoke_command: ./dist/workouter-cli-linux-x86_64.AppImage --version
           - os: macos-latest
             artifact_name: workouter-cli-macos-arm64
-            binary_path: cli/dist/workouter-cli
+            artifact_path: cli/dist/workouter-cli
+            build_target: binary
+            smoke_command: ./dist/workouter-cli --version
           - os: windows-latest
             artifact_name: workouter-cli-windows-x86_64.exe
-            binary_path: cli/dist/workouter-cli.exe
+            artifact_path: cli/dist/workouter-cli.exe
+            build_target: binary
+            smoke_command: ./dist/workouter-cli.exe --version
 
     defaults:
       run:
@@ -44,16 +50,12 @@ jobs:
         run: make install
 
       - name: Build binary
-        run: make binary
+        run: make ${{ matrix.build_target }}
 
       - name: Smoke test (Version)
         shell: bash
         run: |
-          if [ "${{ runner.os }}" = "Windows" ]; then
-            version_output=$(./dist/workouter-cli.exe --version)
-          else
-            version_output=$(./dist/workouter-cli --version)
-          fi
+          version_output=$(${{ matrix.smoke_command }})
 
           if [ -z "$version_output" ]; then
             echo "Binary produced empty --version output"
@@ -66,7 +68,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
-          path: ${{ matrix.binary_path }}
+          path: ${{ matrix.artifact_path }}
           if-no-files-found: error
 
   create-release:
@@ -87,7 +89,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p release-assets
-          cp artifacts/workouter-cli-linux-x86_64/workouter-cli release-assets/workouter-cli-linux-x86_64
+          cp artifacts/workouter-cli-linux-x86_64.AppImage/workouter-cli-linux-x86_64.AppImage release-assets/workouter-cli-linux-x86_64.AppImage
           cp artifacts/workouter-cli-macos-arm64/workouter-cli release-assets/workouter-cli-macos-arm64
           cp artifacts/workouter-cli-windows-x86_64.exe/workouter-cli.exe release-assets/workouter-cli-windows-x86_64.exe
 
