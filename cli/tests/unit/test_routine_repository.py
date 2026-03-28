@@ -5,13 +5,17 @@ from unittest.mock import AsyncMock
 import pytest
 
 from workouter_cli.infrastructure.graphql.mutations.routine import (
+    CREATE_ROUTINE,
+    DELETE_ROUTINE,
     ADD_ROUTINE_EXERCISE,
     ADD_ROUTINE_SET,
     REMOVE_ROUTINE_EXERCISE,
     REMOVE_ROUTINE_SET,
+    UPDATE_ROUTINE,
     UPDATE_ROUTINE_EXERCISE,
     UPDATE_ROUTINE_SET,
 )
+from workouter_cli.infrastructure.graphql.queries.routine import GET_ROUTINE, LIST_ROUTINES
 from workouter_cli.infrastructure.repositories.routine import GraphQLRoutineRepository
 
 
@@ -22,6 +26,98 @@ def _routine_payload() -> dict[str, object]:
         "description": "Chest/Shoulders/Triceps",
         "exercises": [],
     }
+
+
+@pytest.mark.asyncio
+async def test_repository_list_maps_routines_and_pagination() -> None:
+    client = AsyncMock()
+    client.execute = AsyncMock(
+        return_value={
+            "routines": {
+                "items": [_routine_payload()],
+                "total": 1,
+                "page": 1,
+                "pageSize": 20,
+                "totalPages": 1,
+            }
+        }
+    )
+
+    repository = GraphQLRoutineRepository(client=client)
+    items, pagination = await repository.list(page=1, page_size=20)
+
+    assert len(items) == 1
+    assert items[0].name == "Push Day"
+    assert pagination == {"total": 1, "page": 1, "pageSize": 20, "totalPages": 1}
+    client.execute.assert_awaited_once_with(
+        LIST_ROUTINES,
+        {"pagination": {"page": 1, "pageSize": 20}},
+    )
+
+
+@pytest.mark.asyncio
+async def test_repository_get_maps_routine() -> None:
+    client = AsyncMock()
+    client.execute = AsyncMock(return_value={"routine": _routine_payload()})
+
+    repository = GraphQLRoutineRepository(client=client)
+    routine = await repository.get("11111111-1111-1111-1111-111111111111")
+
+    assert routine.id == "11111111-1111-1111-1111-111111111111"
+    client.execute.assert_awaited_once_with(
+        GET_ROUTINE,
+        {"id": "11111111-1111-1111-1111-111111111111"},
+    )
+
+
+@pytest.mark.asyncio
+async def test_repository_create_maps_routine() -> None:
+    client = AsyncMock()
+    client.execute = AsyncMock(return_value={"createRoutine": _routine_payload()})
+
+    repository = GraphQLRoutineRepository(client=client)
+    routine = await repository.create({"name": "Push Day"})
+
+    assert routine.name == "Push Day"
+    client.execute.assert_awaited_once_with(
+        CREATE_ROUTINE,
+        {"input": {"name": "Push Day"}},
+    )
+
+
+@pytest.mark.asyncio
+async def test_repository_update_maps_routine() -> None:
+    client = AsyncMock()
+    client.execute = AsyncMock(return_value={"updateRoutine": _routine_payload()})
+
+    repository = GraphQLRoutineRepository(client=client)
+    routine = await repository.update(
+        "11111111-1111-1111-1111-111111111111", {"description": "Updated"}
+    )
+
+    assert routine.id == "11111111-1111-1111-1111-111111111111"
+    client.execute.assert_awaited_once_with(
+        UPDATE_ROUTINE,
+        {
+            "id": "11111111-1111-1111-1111-111111111111",
+            "input": {"description": "Updated"},
+        },
+    )
+
+
+@pytest.mark.asyncio
+async def test_repository_delete_maps_boolean() -> None:
+    client = AsyncMock()
+    client.execute = AsyncMock(return_value={"deleteRoutine": True})
+
+    repository = GraphQLRoutineRepository(client=client)
+    deleted = await repository.delete("11111111-1111-1111-1111-111111111111")
+
+    assert deleted is True
+    client.execute.assert_awaited_once_with(
+        DELETE_ROUTINE,
+        {"id": "11111111-1111-1111-1111-111111111111"},
+    )
 
 
 @pytest.mark.asyncio

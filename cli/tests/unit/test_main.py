@@ -130,3 +130,17 @@ def test_schema_routines_add_set_outputs_machine_readable_definition() -> None:
     option_names = {option["name"] for option in payload["options"]}
     assert "--set-number" in option_names
     assert "--set-type" in option_names
+
+
+def test_schema_routines_list_outputs_machine_readable_definition() -> None:
+    runner = CliRunner()
+    result = runner.invoke(cli, ["schema", "routines list"])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output.strip())
+    assert payload["command"] == "routines list"
+    assert payload["description"] == "List routines."
+
+    option_names = {option["name"] for option in payload["options"]}
+    assert "--page" in option_names
+    assert "--page-size" in option_names

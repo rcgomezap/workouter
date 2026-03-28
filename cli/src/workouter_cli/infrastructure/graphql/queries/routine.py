@@ -27,3 +27,33 @@ exercises {
   }
 }
 """
+
+
+LIST_ROUTINES = (
+    """
+query ListRoutines($pagination: PaginationInput) {
+  routines(pagination: $pagination) {
+    items {
+      %s
+    }
+    total
+    page
+    pageSize
+    totalPages
+  }
+}
+"""
+    % ROUTINE_FIELDS
+)
+
+
+GET_ROUTINE = (
+    """
+query GetRoutine($id: UUID!) {
+  routine(id: $id) {
+    %s
+  }
+}
+"""
+    % ROUTINE_FIELDS
+)

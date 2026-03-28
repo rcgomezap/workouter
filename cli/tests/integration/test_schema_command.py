@@ -35,3 +35,18 @@ def test_schema_command_outputs_valid_json_for_routines_add_exercise() -> None:
     options = {item["name"] for item in payload["options"]}
     assert "--exercise-id" in options
     assert "--order" in options
+
+
+def test_schema_command_outputs_valid_json_for_routines_crud_list() -> None:
+    runner = CliRunner()
+    result = runner.invoke(cli, ["schema", "routines list"])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output.strip())
+
+    assert payload["command"] == "routines list"
+    assert payload["description"] == "List routines."
+
+    options = {item["name"] for item in payload["options"]}
+    assert "--page" in options
+    assert "--page-size" in options
