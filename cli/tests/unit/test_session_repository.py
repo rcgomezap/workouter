@@ -48,3 +48,45 @@ async def test_repository_complete_maps_session() -> None:
     assert session.status == "COMPLETED"
     assert session.completed_at == "2026-01-01T11:00:00Z"
     client.execute.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_repository_update_maps_session() -> None:
+    payload = _session_payload("IN_PROGRESS")
+    payload["notes"] = "Solid session"
+
+    client = AsyncMock()
+    client.execute = AsyncMock(return_value={"updateSession": payload})
+
+    repository = GraphQLSessionRepository(client=client)
+    session = await repository.update(
+        "11111111-1111-1111-1111-111111111111", {"notes": "Solid session"}
+    )
+
+    assert session.notes == "Solid session"
+    client.execute.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_repository_list_maps_sessions_and_pagination() -> None:
+    client = AsyncMock()
+    client.execute = AsyncMock(
+        return_value={
+            "sessions": {
+                "items": [_session_payload("IN_PROGRESS")],
+                "total": 1,
+                "page": 1,
+                "pageSize": 2,
+                "totalPages": 1,
+            }
+        }
+    )
+
+    repository = GraphQLSessionRepository(client=client)
+    items, pagination = await repository.list(page=1, page_size=2, status="IN_PROGRESS")
+
+    assert len(items) == 1
+    assert items[0].status == "IN_PROGRESS"
+    assert pagination["total"] == 1
+    assert pagination["pageSize"] == 2
+    client.execute.assert_awaited_once()

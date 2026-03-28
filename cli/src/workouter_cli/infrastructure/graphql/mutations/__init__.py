@@ -10,6 +10,7 @@ from workouter_cli.infrastructure.graphql.mutations.session import (
     CREATE_SESSION,
     LOG_SET_RESULT,
     START_SESSION,
+    UPDATE_SESSION,
 )
 
 __all__ = [
@@ -19,5 +20,6 @@ __all__ = [
     "CREATE_SESSION",
     "START_SESSION",
     "COMPLETE_SESSION",
+    "UPDATE_SESSION",
     "LOG_SET_RESULT",
 ]
