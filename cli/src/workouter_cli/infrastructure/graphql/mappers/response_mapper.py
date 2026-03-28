@@ -6,6 +6,7 @@ from typing import Any
 
 from workouter_cli.domain.entities.exercise import Exercise, ExerciseMuscleGroup, MuscleGroup
 from workouter_cli.domain.entities.calendar import CalendarDay, PlannedSession
+from workouter_cli.domain.entities.mesocycle import Mesocycle, MesocycleWeek
 from workouter_cli.domain.entities.routine import Routine, RoutineExercise, RoutineSet
 from workouter_cli.domain.entities.session import Session, SessionExercise, SessionSet
 
@@ -149,6 +150,32 @@ def map_routine(data: dict[str, Any]) -> Routine:
         name=str(data["name"]),
         description=str(data["description"]) if data.get("description") is not None else None,
         exercises=tuple(map_routine_exercise(item) for item in data.get("exercises", [])),
+    )
+
+
+def map_mesocycle_week(data: dict[str, Any]) -> MesocycleWeek:
+    """Map GraphQL mesocycle week payload to domain entity."""
+
+    return MesocycleWeek(
+        id=str(data["id"]),
+        week_number=int(data["weekNumber"]),
+        week_type=str(data["weekType"]),
+        start_date=str(data["startDate"]),
+        end_date=str(data["endDate"]),
+    )
+
+
+def map_mesocycle(data: dict[str, Any]) -> Mesocycle:
+    """Map GraphQL mesocycle payload to domain entity."""
+
+    return Mesocycle(
+        id=str(data["id"]),
+        name=str(data["name"]),
+        description=str(data["description"]) if data.get("description") is not None else None,
+        start_date=str(data["startDate"]),
+        end_date=str(data["endDate"]) if data.get("endDate") is not None else None,
+        status=str(data["status"]),
+        weeks=tuple(map_mesocycle_week(item) for item in data.get("weeks", [])),
     )
 
 

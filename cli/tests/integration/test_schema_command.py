@@ -50,3 +50,18 @@ def test_schema_command_outputs_valid_json_for_routines_crud_list() -> None:
     options = {item["name"] for item in payload["options"]}
     assert "--page" in options
     assert "--page-size" in options
+
+
+def test_schema_command_outputs_valid_json_for_mesocycles_list() -> None:
+    runner = CliRunner()
+    result = runner.invoke(cli, ["schema", "mesocycles list"])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output.strip())
+
+    assert payload["command"] == "mesocycles list"
+    assert payload["description"] == "List mesocycles."
+
+    options = {item["name"] for item in payload["options"]}
+    assert "--page" in options
+    assert "--status" in options
