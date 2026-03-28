@@ -82,7 +82,14 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts
-          merge-multiple: true
+
+      - name: Prepare release assets
+        shell: bash
+        run: |
+          mkdir -p release-assets
+          cp artifacts/workouter-cli-linux-x86_64/workouter-cli release-assets/workouter-cli-linux-x86_64
+          cp artifacts/workouter-cli-macos-arm64/workouter-cli release-assets/workouter-cli-macos-arm64
+          cp artifacts/workouter-cli-windows-x86_64.exe/workouter-cli.exe release-assets/workouter-cli-windows-x86_64.exe
 
       - name: Validate tag matches CLI version
         shell: bash
@@ -112,4 +119,4 @@ jobs:
           gh release create ${{ github.ref_name }} \
             --title "Release ${{ github.ref_name }}" \
             --generate-notes \
-            artifacts/*
+            release-assets/*
