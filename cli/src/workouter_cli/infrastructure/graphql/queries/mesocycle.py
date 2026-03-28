@@ -13,6 +13,16 @@ weeks {
   weekType
   startDate
   endDate
+  plannedSessions {
+    id
+    routine {
+      id
+      name
+    }
+    dayOfWeek
+    date
+    notes
+  }
 }
 """
 

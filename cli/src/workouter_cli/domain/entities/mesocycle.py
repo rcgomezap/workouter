@@ -6,6 +6,18 @@ from dataclasses import dataclass
 
 
 @dataclass(slots=True, frozen=True)
+class MesocyclePlannedSession:
+    """Planned session details nested under a mesocycle week."""
+
+    id: str
+    routine_id: str | None
+    routine_name: str | None
+    day_of_week: int
+    date: str
+    notes: str | None
+
+
+@dataclass(slots=True, frozen=True)
 class MesocycleWeek:
     """Mesocycle week planning details."""
 
@@ -14,6 +26,7 @@ class MesocycleWeek:
     week_type: str
     start_date: str
     end_date: str
+    planned_sessions: tuple[MesocyclePlannedSession, ...]
 
 
 @dataclass(slots=True, frozen=True)

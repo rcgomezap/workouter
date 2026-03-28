@@ -65,3 +65,33 @@ def test_schema_command_outputs_valid_json_for_mesocycles_list() -> None:
     options = {item["name"] for item in payload["options"]}
     assert "--page" in options
     assert "--status" in options
+
+
+def test_schema_command_outputs_valid_json_for_mesocycles_add_week() -> None:
+    runner = CliRunner()
+    result = runner.invoke(cli, ["schema", "mesocycles add-week"])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output.strip())
+
+    assert payload["command"] == "mesocycles add-week"
+    assert payload["description"] == "Add one planning week to a mesocycle."
+
+    options = {item["name"] for item in payload["options"]}
+    assert "--week-number" in options
+    assert "--week-type" in options
+
+
+def test_schema_command_outputs_valid_json_for_mesocycles_add_session() -> None:
+    runner = CliRunner()
+    result = runner.invoke(cli, ["schema", "mesocycles add-session"])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output.strip())
+
+    assert payload["command"] == "mesocycles add-session"
+    assert payload["description"] == "Add one planned session to a mesocycle week."
+
+    options = {item["name"] for item in payload["options"]}
+    assert "--day-of-week" in options
+    assert "--routine-id" in options
