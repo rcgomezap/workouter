@@ -21,9 +21,15 @@ class GraphQLExerciseRepository(ExerciseRepository):
         self.client = client
 
     async def list(
-        self, page: int = 1, page_size: int = 20
+        self,
+        page: int = 1,
+        page_size: int = 20,
+        muscle_group_id: str | None = None,
     ) -> tuple[list[Exercise], dict[str, int]]:
-        variables = {"pagination": {"page": page, "pageSize": page_size}}
+        variables = {
+            "pagination": {"page": page, "pageSize": page_size},
+            "muscleGroupId": muscle_group_id,
+        }
         result = await self.client.execute(LIST_EXERCISES, variables)
         payload = result["exercises"]
         items = [map_exercise(item) for item in payload["items"]]

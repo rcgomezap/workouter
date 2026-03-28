@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import json
+from typing import Any
+
 import click
 from rich.console import Console
 
@@ -44,6 +47,115 @@ class SafeGroup(click.Group):
             raise
         except Exception as error:  # pragma: no cover - defensive fallback
             handle_unexpected_error(error, output_json=output_json, command=command)
+
+
+EXAMPLE_OUTPUTS: dict[str, dict[str, Any]] = {
+    "exercises list": {
+        "success": True,
+        "data": {
+            "items": [
+                {
+                    "id": "550e8400-e29b-41d4-a716-446655440000",
+                    "name": "Bench Press",
+                    "description": "Compound chest exercise",
+                    "equipment": "Barbell",
+                    "muscle_groups": [
+                        {
+                            "muscle_group": {
+                                "id": "11111111-1111-1111-1111-111111111111",
+                                "name": "Chest",
+                            },
+                            "role": "PRIMARY",
+                        }
+                    ],
+                }
+            ],
+            "total": 42,
+            "page": 1,
+            "page_size": 20,
+            "total_pages": 3,
+        },
+    }
+}
+
+
+def _normalize_type_name(parameter_type: click.types.ParamType) -> str:
+    if isinstance(parameter_type, click.types.BoolParamType):
+        return "boolean"
+    if isinstance(parameter_type, click.types.IntParamType):
+        return "int"
+    if isinstance(parameter_type, click.types.UUIDParameterType):
+        return "UUID"
+    return parameter_type.name or parameter_type.__class__.__name__.lower()
+
+
+def _resolve_command(command_name: str) -> tuple[click.Command, str]:
+    parts = [part for part in command_name.split() if part]
+    if not parts:
+        raise click.ClickException("Command name is required")
+
+    current: click.Command | click.Group = cli
+    resolved_parts: list[str] = []
+
+    for part in parts:
+        if not isinstance(current, click.Group):
+            path = " ".join(resolved_parts)
+            raise click.ClickException(f"'{path}' has no subcommands")
+        next_command = current.commands.get(part)
+        if next_command is None:
+            raise click.ClickException(f"Unknown command: {' '.join(parts)}")
+        current = next_command
+        resolved_parts.append(part)
+
+    return current, " ".join(resolved_parts)
+
+
+def _build_schema(command_name: str) -> dict[str, Any]:
+    command, normalized_name = _resolve_command(command_name)
+    options: list[dict[str, Any]] = []
+    arguments: list[dict[str, Any]] = []
+    required_flags: list[str] = []
+
+    for parameter in command.params:
+        if isinstance(parameter, click.Option):
+            long_flags = [flag for flag in parameter.opts if flag.startswith("--")]
+            flag_name = long_flags[0] if long_flags else parameter.opts[0]
+            option_schema: dict[str, Any] = {
+                "name": flag_name,
+                "type": _normalize_type_name(parameter.type),
+                "required": parameter.required,
+                "description": parameter.help or "",
+            }
+            if parameter.default is not None:
+                option_schema["default"] = parameter.default
+            options.append(option_schema)
+            if parameter.required and flag_name.startswith("--"):
+                required_flags.append(flag_name)
+            continue
+
+        if isinstance(parameter, click.Argument):
+            arguments.append(
+                {
+                    "name": parameter.name,
+                    "type": _normalize_type_name(parameter.type),
+                    "required": parameter.required,
+                }
+            )
+
+    return {
+        "command": normalized_name,
+        "description": command.help or command.short_help or "",
+        "options": options,
+        "arguments": arguments,
+        "required_flags": required_flags,
+        "example_output": EXAMPLE_OUTPUTS.get(
+            normalized_name,
+            {
+                "success": True,
+                "data": {},
+            },
+        ),
+    }
 
 
 @click.group(cls=SafeGroup)
@@ -100,10 +212,12 @@ def cli(ctx: click.Context, output_json: bool, timeout: int | None) -> None:
 
 
 @cli.command(name="schema")
-def schema() -> None:
-    """Show command schema placeholder."""
+@click.argument("command_name", type=str)
+def schema(command_name: str) -> None:
+    """Show JSON schema for a command."""
 
-    click.echo('{"success": true, "data": {"message": "schema command placeholder"}}')
+    payload = _build_schema(command_name)
+    click.echo(json.dumps(payload, separators=(",", ":"), sort_keys=False))
 
 
 @cli.command(name="ping")

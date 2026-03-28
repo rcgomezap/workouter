@@ -64,3 +64,25 @@ def test_ping_json_output_has_expected_shape() -> None:
     payload = json.loads(result.output.strip())
     assert payload["success"] is True
     assert payload["data"]["message"] == "ready"
+
+
+def test_schema_exercises_list_outputs_machine_readable_definition() -> None:
+    runner = CliRunner()
+    result = runner.invoke(cli, ["schema", "exercises list"])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output.strip())
+    assert payload["command"] == "exercises list"
+    assert payload["description"] == "List exercises."
+
+    option_names = {option["name"] for option in payload["options"]}
+    assert "--page" in option_names
+    assert "--muscle-group-id" in option_names
+
+
+def test_schema_unknown_command_fails() -> None:
+    runner = CliRunner()
+    result = runner.invoke(cli, ["schema", "nope cmd"])
+
+    assert result.exit_code != 0
+    assert "Unknown command" in result.output

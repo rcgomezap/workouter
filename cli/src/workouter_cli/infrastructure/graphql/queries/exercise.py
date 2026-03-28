@@ -1,8 +1,8 @@
 """Exercise GraphQL queries."""
 
 LIST_EXERCISES = """
-query ListExercises($pagination: PaginationInput) {
-  exercises(pagination: $pagination) {
+query ListExercises($pagination: PaginationInput, $muscleGroupId: UUID) {
+  exercises(pagination: $pagination, muscleGroupId: $muscleGroupId) {
     items {
       id
       name

@@ -14,9 +14,16 @@ class ExerciseService:
         self.exercise_repository = exercise_repository
 
     async def list(
-        self, page: int = 1, page_size: int = 20
+        self,
+        page: int = 1,
+        page_size: int = 20,
+        muscle_group_id: str | None = None,
     ) -> tuple[list[Exercise], dict[str, int]]:
-        return await self.exercise_repository.list(page=page, page_size=page_size)
+        return await self.exercise_repository.list(
+            page=page,
+            page_size=page_size,
+            muscle_group_id=muscle_group_id,
+        )
 
     async def get(self, exercise_id: str) -> Exercise:
         return await self.exercise_repository.get(exercise_id)
