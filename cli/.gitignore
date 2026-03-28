@@ -9,4 +9,3 @@ htmlcov/
 build/
 dist/
 *.spec
-*.AppImage
