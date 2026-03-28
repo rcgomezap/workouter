@@ -4,6 +4,7 @@ import json
 import os
 import socket
 import subprocess
+import tempfile
 import time
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
@@ -24,6 +25,10 @@ class APIRuntime:
     base_url: str
     graphql_url: str
     api_key: str
+    runtime_dir: Path
+    database_path: Path
+    backups_dir: Path
+    log_path: Path
 
 
 @dataclass(frozen=True)
@@ -118,60 +123,69 @@ def _wait_for_health(
     )
 
 
-@pytest.fixture(scope="session")
-def api_runtime(tmp_path_factory: pytest.TempPathFactory) -> Iterator[APIRuntime]:
-    temp_dir = tmp_path_factory.mktemp("e2e-runtime")
-    data_dir = temp_dir / "data"
-    backups_dir = temp_dir / "backups"
-    data_dir.mkdir(parents=True, exist_ok=True)
-    backups_dir.mkdir(parents=True, exist_ok=True)
+@pytest.fixture
+def api_runtime() -> Iterator[APIRuntime]:
+    with tempfile.TemporaryDirectory(prefix="workouter-e2e-") as runtime_dir_str:
+        runtime_dir = Path(runtime_dir_str)
+        data_dir = runtime_dir / "data"
+        backups_dir = runtime_dir / "backups"
+        data_dir.mkdir(parents=True, exist_ok=True)
+        backups_dir.mkdir(parents=True, exist_ok=True)
 
-    port = _get_free_port()
-    api_key = f"e2e-key-{port}"
-    config_path = temp_dir / "config.e2e.yaml"
-    log_path = temp_dir / "api.log"
-    _write_api_config(config_path, port, api_key, data_dir, backups_dir)
+        port = _get_free_port()
+        api_key = f"e2e-key-{port}"
+        config_path = runtime_dir / "config.e2e.yaml"
+        log_path = runtime_dir / "api.log"
+        database_path = data_dir / "e2e.sqlite"
+        _write_api_config(config_path, port, api_key, data_dir, backups_dir)
 
-    env = os.environ.copy()
-    env["CONFIG_PATH"] = str(config_path)
-    env["PYTHONPATH"] = "src"
+        env = os.environ.copy()
+        env["CONFIG_PATH"] = str(config_path)
+        env["PYTHONPATH"] = "src"
 
-    with log_path.open("w", encoding="utf-8") as log_file:
-        process: subprocess.Popen[str] = subprocess.Popen(
-            [
-                "uv",
-                "run",
-                "uvicorn",
-                "app.main:create_app",
-                "--factory",
-                "--host",
-                "127.0.0.1",
-                "--port",
-                str(port),
-            ],
-            cwd=API_DIR,
-            env=env,
-            stdout=log_file,
-            stderr=subprocess.STDOUT,
-            text=True,
-        )
+        with log_path.open("w", encoding="utf-8") as log_file:
+            process: subprocess.Popen[str] = subprocess.Popen(
+                [
+                    "uv",
+                    "run",
+                    "uvicorn",
+                    "app.main:create_app",
+                    "--factory",
+                    "--host",
+                    "127.0.0.1",
+                    "--port",
+                    str(port),
+                ],
+                cwd=API_DIR,
+                env=env,
+                stdout=log_file,
+                stderr=subprocess.STDOUT,
+                text=True,
+            )
 
-    base_url = f"http://127.0.0.1:{port}"
-    _wait_for_health(url=f"{base_url}/health", process=process, log_path=log_path)
+        base_url = f"http://127.0.0.1:{port}"
 
-    try:
-        yield APIRuntime(
-            base_url=base_url,
-            graphql_url=f"{base_url}/graphql",
-            api_key=api_key,
-        )
-    finally:
-        process.terminate()
         try:
-            process.wait(timeout=10)
-        except subprocess.TimeoutExpired:
-            process.kill()
-            process.wait(timeout=5)
+            _wait_for_health(
+                url=f"{base_url}/health", process=process, log_path=log_path
+            )
+            yield APIRuntime(
+                base_url=base_url,
+                graphql_url=f"{base_url}/graphql",
+                api_key=api_key,
+                runtime_dir=runtime_dir,
+                database_path=database_path,
+                backups_dir=backups_dir,
+                log_path=log_path,
+            )
+        finally:
+            if process.poll() is None:
+                process.terminate()
+                try:
+                    process.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait(timeout=5)
 
 
 @pytest.fixture
