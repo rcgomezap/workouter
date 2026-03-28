@@ -49,15 +49,16 @@ jobs:
       - name: Install dependencies
         run: make install
 
-      - name: Install execstack (Linux)
+      - name: Install patchelf (Linux)
         if: runner.os == 'Linux'
-        shell: bash
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y execstack || sudo apt-get install -y prelink
+        run: sudo apt-get install -y patchelf
 
       - name: Build binary
         run: make ${{ matrix.build_target }}
+
+      - name: Patch execstack (Linux)
+        if: runner.os == 'Linux'
+        run: patchelf --clear-execstack dist/workouter-cli
 
       - name: Smoke test (Version)
         shell: bash
