@@ -20,7 +20,7 @@ jobs:
           - os: ubuntu-latest
             artifact_name: workouter-cli-linux-x86_64
             artifact_path: cli/dist/workouter-cli
-            build_target: binary
+            build_target: binary-linux-nuitka
             smoke_command: ./dist/workouter-cli --version
           - os: macos-latest
             artifact_name: workouter-cli-macos-arm64
@@ -49,16 +49,8 @@ jobs:
       - name: Install dependencies
         run: make install
 
-      - name: Install patchelf (Linux)
-        if: runner.os == 'Linux'
-        run: sudo apt-get install -y patchelf
-
       - name: Build binary
         run: make ${{ matrix.build_target }}
-
-      - name: Patch execstack (Linux)
-        if: runner.os == 'Linux'
-        run: patchelf --clear-execstack dist/workouter-cli
 
       - name: Smoke test (Version)
         shell: bash

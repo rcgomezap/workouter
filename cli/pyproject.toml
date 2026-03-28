@@ -26,6 +26,7 @@ dev = [
   "pytest-cov>=4.1.0",
   "ruff>=0.3.0",
   "mypy>=1.8.0",
+  "nuitka>=2.7.0",
   "pyinstaller>=6.0.0",
 ]
 
@@ -40,6 +41,7 @@ dev = [
   "pytest-cov>=4.1.0",
   "ruff>=0.3.0",
   "mypy>=1.8.0",
+  "nuitka>=2.7.0",
   "pyinstaller>=6.0.0",
 ]
 
