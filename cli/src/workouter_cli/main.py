@@ -9,8 +9,11 @@ import click
 from rich.console import Console
 
 from workouter_cli.application.formatters.factory import get_formatter
+from workouter_cli.application.services.backup_service import BackupService
+from workouter_cli.application.services.bodyweight_service import BodyweightService
 from workouter_cli.application.services.calendar_service import CalendarService
 from workouter_cli.application.services.exercise_service import ExerciseService
+from workouter_cli.application.services.insight_service import InsightService
 from workouter_cli.application.services.mesocycle_service import MesocycleService
 from workouter_cli.application.services.routine_service import RoutineService
 from workouter_cli.application.services.session_service import SessionService
@@ -18,12 +21,19 @@ from workouter_cli.application.services.workflow_service import WorkflowService
 from workouter_cli.domain.exceptions import AuthError, CLIError
 from workouter_cli.infrastructure.config.loader import ConfigError, load_config
 from workouter_cli.infrastructure.graphql.client import GraphQLClient
+from workouter_cli.infrastructure.repositories.backup import GraphQLBackupRepository
+from workouter_cli.infrastructure.repositories.bodyweight import GraphQLBodyweightRepository
 from workouter_cli.infrastructure.repositories.calendar import GraphQLCalendarRepository
 from workouter_cli.infrastructure.repositories.exercise import GraphQLExerciseRepository
+from workouter_cli.infrastructure.repositories.insight import GraphQLInsightRepository
 from workouter_cli.infrastructure.repositories.mesocycle import GraphQLMesocycleRepository
 from workouter_cli.infrastructure.repositories.routine import GraphQLRoutineRepository
 from workouter_cli.infrastructure.repositories.session import GraphQLSessionRepository
+from workouter_cli.presentation.commands.backup import backup
+from workouter_cli.presentation.commands.bodyweight import bodyweight
+from workouter_cli.presentation.commands.calendar import calendar
 from workouter_cli.presentation.commands.exercises import exercises
+from workouter_cli.presentation.commands.insights import insights
 from workouter_cli.presentation.commands.mesocycles import mesocycles
 from workouter_cli.presentation.commands.routines import routines
 from workouter_cli.presentation.commands.sessions import sessions
@@ -195,11 +205,17 @@ def cli(ctx: click.Context, output_json: bool, timeout: int | None) -> None:
         routine_repository = GraphQLRoutineRepository(client=client)
         session_repository = GraphQLSessionRepository(client=client)
         calendar_repository = GraphQLCalendarRepository(client=client)
+        bodyweight_repository = GraphQLBodyweightRepository(client=client)
+        insight_repository = GraphQLInsightRepository(client=client)
+        backup_repository = GraphQLBackupRepository(client=client)
         exercise_service = ExerciseService(exercise_repository=exercise_repository)
         mesocycle_service = MesocycleService(mesocycle_repository=mesocycle_repository)
         routine_service = RoutineService(routine_repository=routine_repository)
         session_service = SessionService(session_repository=session_repository)
         calendar_service = CalendarService(calendar_repository=calendar_repository)
+        bodyweight_service = BodyweightService(bodyweight_repository=bodyweight_repository)
+        insight_service = InsightService(insight_repository=insight_repository)
+        backup_service = BackupService(backup_repository=backup_repository)
         workflow_service = WorkflowService(
             calendar_repository=calendar_repository,
             session_repository=session_repository,
@@ -209,6 +225,9 @@ def cli(ctx: click.Context, output_json: bool, timeout: int | None) -> None:
             client=client,
             output_json=output_json,
             timeout=effective_timeout,
+            backup_service=backup_service,
+            bodyweight_service=bodyweight_service,
+            insight_service=insight_service,
             exercise_service=exercise_service,
             mesocycle_service=mesocycle_service,
             routine_service=routine_service,
@@ -260,4 +279,8 @@ cli.add_command(exercises)
 cli.add_command(mesocycles)
 cli.add_command(routines)
 cli.add_command(sessions)
+cli.add_command(bodyweight)
+cli.add_command(insights)
+cli.add_command(calendar)
+cli.add_command(backup)
 cli.add_command(workout)

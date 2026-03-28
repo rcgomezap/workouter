@@ -1,5 +1,11 @@
 """GraphQL mutations package."""
 
+from workouter_cli.infrastructure.graphql.mutations.backup import TRIGGER_BACKUP
+from workouter_cli.infrastructure.graphql.mutations.bodyweight import (
+    DELETE_BODYWEIGHT_LOG,
+    LOG_BODYWEIGHT,
+    UPDATE_BODYWEIGHT_LOG,
+)
 from workouter_cli.infrastructure.graphql.mutations.exercise import (
     CREATE_EXERCISE,
     DELETE_EXERCISE,
@@ -40,6 +46,10 @@ from workouter_cli.infrastructure.graphql.mutations.session import (
 )
 
 __all__ = [
+    "TRIGGER_BACKUP",
+    "LOG_BODYWEIGHT",
+    "UPDATE_BODYWEIGHT_LOG",
+    "DELETE_BODYWEIGHT_LOG",
     "CREATE_EXERCISE",
     "UPDATE_EXERCISE",
     "DELETE_EXERCISE",

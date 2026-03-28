@@ -95,3 +95,58 @@ def test_schema_command_outputs_valid_json_for_mesocycles_add_session() -> None:
     options = {item["name"] for item in payload["options"]}
     assert "--day-of-week" in options
     assert "--routine-id" in options
+
+
+def test_schema_command_outputs_valid_json_for_bodyweight_log() -> None:
+    runner = CliRunner()
+    result = runner.invoke(cli, ["schema", "bodyweight log"])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output.strip())
+
+    assert payload["command"] == "bodyweight log"
+    assert payload["description"] == "Log bodyweight."
+
+    options = {item["name"] for item in payload["options"]}
+    assert "--weight" in options
+    assert "--recorded-at" in options
+
+
+def test_schema_command_outputs_valid_json_for_insights_volume() -> None:
+    runner = CliRunner()
+    result = runner.invoke(cli, ["schema", "insights volume"])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output.strip())
+
+    assert payload["command"] == "insights volume"
+    assert payload["description"] == "Show mesocycle volume insight."
+
+    options = {item["name"] for item in payload["options"]}
+    assert "--mesocycle-id" in options
+
+
+def test_schema_command_outputs_valid_json_for_calendar_range() -> None:
+    runner = CliRunner()
+    result = runner.invoke(cli, ["schema", "calendar range"])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output.strip())
+
+    assert payload["command"] == "calendar range"
+    assert payload["description"] == "Show calendar range."
+
+    options = {item["name"] for item in payload["options"]}
+    assert "--start-date" in options
+    assert "--end-date" in options
+
+
+def test_schema_command_outputs_valid_json_for_backup_trigger() -> None:
+    runner = CliRunner()
+    result = runner.invoke(cli, ["schema", "backup trigger"])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output.strip())
+
+    assert payload["command"] == "backup trigger"
+    assert payload["description"] == "Trigger database backup."
