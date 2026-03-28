@@ -45,6 +45,7 @@ from workouter_cli.presentation.middleware.error_handler import (
 )
 from workouter_cli.presentation.middleware.logging import setup_logging
 from workouter_cli.utils.exit_codes import ExitCode
+from workouter_cli.version import __version__
 
 
 class SafeGroup(click.Group):
@@ -179,7 +180,7 @@ def _build_schema(command_name: str) -> dict[str, Any]:
 @click.group(cls=SafeGroup)
 @click.option("--json", "output_json", is_flag=True, help="Output machine-readable JSON")
 @click.option("--timeout", type=int, default=None, help="Override request timeout in seconds")
-@click.version_option(package_name="workouter-cli")
+@click.version_option(version=__version__, package_name="workouter-cli")
 @click.pass_context
 def cli(ctx: click.Context, output_json: bool, timeout: int | None) -> None:
     """Workouter CLI."""
@@ -284,3 +285,7 @@ cli.add_command(insights)
 cli.add_command(calendar)
 cli.add_command(backup)
 cli.add_command(workout)
+
+
+if __name__ == "__main__":
+    cli()
