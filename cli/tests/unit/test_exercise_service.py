@@ -17,7 +17,24 @@ async def test_service_list_uses_default_pagination() -> None:
 
     await service.list()
 
-    repo.list.assert_awaited_once_with(page=1, page_size=20)
+    repo.list.assert_awaited_once_with(page=1, page_size=20, muscle_group_id=None)
+
+
+@pytest.mark.asyncio
+async def test_service_list_passes_muscle_group_filter() -> None:
+    repo = AsyncMock()
+    repo.list = AsyncMock(
+        return_value=([], {"total": 0, "page": 1, "pageSize": 20, "totalPages": 0})
+    )
+    service = ExerciseService(exercise_repository=repo)
+
+    await service.list(muscle_group_id="11111111-1111-1111-1111-111111111111")
+
+    repo.list.assert_awaited_once_with(
+        page=1,
+        page_size=20,
+        muscle_group_id="11111111-1111-1111-1111-111111111111",
+    )
 
 
 @pytest.mark.asyncio

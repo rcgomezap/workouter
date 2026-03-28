@@ -6,6 +6,7 @@ import asyncio
 from collections.abc import Coroutine
 from dataclasses import asdict
 from typing import Any, TypeVar
+from uuid import UUID
 
 import click
 from pydantic import ValidationError as PydanticValidationError
@@ -44,15 +45,24 @@ def exercises() -> None:
 
 
 @exercises.command(name="list")
+@click.option("--muscle-group-id", type=click.UUID, default=None)
 @click.option("--page", type=int, default=1, show_default=True)
 @click.option("--page-size", type=int, default=20, show_default=True)
 @click.pass_obj
-def list_exercises(ctx: CLIContext, page: int, page_size: int) -> None:
+def list_exercises(
+    ctx: CLIContext, muscle_group_id: UUID | None, page: int, page_size: int
+) -> None:
     """List exercises."""
 
     items: list[Exercise]
     pagination: dict[str, int]
-    items, pagination = _run(ctx.exercise_service.list(page=page, page_size=page_size))
+    items, pagination = _run(
+        ctx.exercise_service.list(
+            page=page,
+            page_size=page_size,
+            muscle_group_id=str(muscle_group_id) if muscle_group_id is not None else None,
+        )
+    )
     payload = {
         "items": [_exercise_to_payload(item) for item in items],
         "total": pagination["total"],

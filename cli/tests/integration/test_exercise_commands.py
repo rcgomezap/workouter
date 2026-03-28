@@ -51,6 +51,40 @@ def test_exercises_list_json_output(mocker) -> None:  # type: ignore[no-untyped-
     assert payload["data"]["items"][0]["name"] == "Bench Press"
 
 
+def test_exercises_list_json_accepts_muscle_group_filter(mocker) -> None:  # type: ignore[no-untyped-def]
+    mock_execute = AsyncMock(
+        return_value={
+            "exercises": {
+                "items": [],
+                "total": 0,
+                "page": 1,
+                "pageSize": 20,
+                "totalPages": 0,
+            }
+        }
+    )
+    mocker.patch(
+        "workouter_cli.infrastructure.graphql.client.GraphQLClient.execute",
+        mock_execute,
+    )
+
+    runner = CliRunner(env=_base_env())
+    result = runner.invoke(
+        cli,
+        [
+            "--json",
+            "exercises",
+            "list",
+            "--muscle-group-id",
+            "11111111-1111-1111-1111-111111111111",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output.strip())
+    assert payload["success"] is True
+
+
 def test_exercises_create_dry_run_does_not_call_api(mocker) -> None:  # type: ignore[no-untyped-def]
     mock_execute = AsyncMock()
     mocker.patch(

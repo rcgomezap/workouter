@@ -11,7 +11,10 @@ class ExerciseRepository(Protocol):
     """Persistence contract for exercises."""
 
     async def list(
-        self, page: int = 1, page_size: int = 20
+        self,
+        page: int = 1,
+        page_size: int = 20,
+        muscle_group_id: str | None = None,
     ) -> tuple[list[Exercise], dict[str, int]]:
         """List exercises and return items with pagination metadata."""
         ...
