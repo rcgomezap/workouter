@@ -6,9 +6,12 @@ import click
 from rich.console import Console
 
 from workouter_cli.application.formatters.factory import get_formatter
+from workouter_cli.application.services.exercise_service import ExerciseService
 from workouter_cli.domain.exceptions import AuthError, CLIError
 from workouter_cli.infrastructure.config.loader import ConfigError, load_config
 from workouter_cli.infrastructure.graphql.client import GraphQLClient
+from workouter_cli.infrastructure.repositories.exercise import GraphQLExerciseRepository
+from workouter_cli.presentation.commands.exercises import exercises
 from workouter_cli.presentation.context import CLIContext
 from workouter_cli.presentation.middleware.error_handler import (
     handle_cli_error,
@@ -61,11 +64,14 @@ def cli(ctx: click.Context, output_json: bool, timeout: int | None) -> None:
         client = GraphQLClient(
             url=str(config.api_url), api_key=config.api_key, timeout=effective_timeout
         )
+        exercise_repository = GraphQLExerciseRepository(client=client)
+        exercise_service = ExerciseService(exercise_repository=exercise_repository)
         ctx.obj = CLIContext(
             config=config,
             client=client,
             output_json=output_json,
             timeout=effective_timeout,
+            exercise_service=exercise_service,
         )
     except ConfigError as error:
         code = "AUTH_ERROR" if error.exit_code == ExitCode.AUTH_ERROR else "VALIDATION_ERROR"
@@ -103,3 +109,6 @@ def raise_auth() -> None:
     """Test-only command that raises AuthError."""
 
     raise AuthError("Invalid API key")
+
+
+cli.add_command(exercises)
