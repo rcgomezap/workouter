@@ -8,6 +8,7 @@ version = "0.1.0"
 description = "Command-line interface for Workouter API"
 readme = "README.md"
 requires-python = ">=3.14"
+license = {text = "MIT"}
 dependencies = [
   "click>=8.1.0",
   "gql[httpx]>=3.5.0",
