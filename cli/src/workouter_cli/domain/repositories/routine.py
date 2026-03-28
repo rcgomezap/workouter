@@ -10,6 +10,28 @@ from workouter_cli.domain.entities.routine import Routine, RoutineExercise, Rout
 class RoutineRepository(Protocol):
     """Persistence contract for routines."""
 
+    async def list(
+        self, page: int = 1, page_size: int = 20
+    ) -> tuple[list[Routine], dict[str, int]]:
+        """List routines and return items with pagination metadata."""
+        ...
+
+    async def get(self, routine_id: str) -> Routine:
+        """Get one routine by ID."""
+        ...
+
+    async def create(self, payload: dict[str, str | None]) -> Routine:
+        """Create one routine."""
+        ...
+
+    async def update(self, routine_id: str, payload: dict[str, str | None]) -> Routine:
+        """Update one routine."""
+        ...
+
+    async def delete(self, routine_id: str) -> bool:
+        """Delete one routine."""
+        ...
+
     async def add_exercise(self, routine_id: str, payload: dict[str, object]) -> Routine:
         """Add one exercise to a routine."""
         ...

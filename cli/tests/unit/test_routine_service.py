@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
+from workouter_cli.application.dto.routine import CreateRoutineInputDTO, UpdateRoutineInputDTO
 from workouter_cli.application.services.routine_service import RoutineService
 from workouter_cli.domain.entities.routine import Routine, RoutineExercise, RoutineSet
 
@@ -42,6 +43,44 @@ def _routine_set() -> RoutineSet:
         weight_reduction_pct=None,
         rest_seconds=120,
     )
+
+
+@pytest.mark.asyncio
+async def test_routine_service_crud_delegates(mocker) -> None:  # type: ignore[no-untyped-def]
+    repository = mocker.Mock()
+    repository.list = AsyncMock(
+        return_value=([_routine()], {"total": 1, "page": 1, "pageSize": 20, "totalPages": 1})
+    )
+    repository.get = AsyncMock(return_value=_routine())
+    repository.create = AsyncMock(return_value=_routine())
+    repository.update = AsyncMock(return_value=_routine())
+    repository.delete = AsyncMock(return_value=True)
+    service = RoutineService(routine_repository=repository)
+
+    items, pagination = await service.list(page=1, page_size=20)
+    fetched = await service.get("11111111-1111-1111-1111-111111111111")
+    created = await service.create(CreateRoutineInputDTO(name="Push Day"))
+    updated = await service.update(
+        "11111111-1111-1111-1111-111111111111",
+        UpdateRoutineInputDTO(description="Updated"),
+    )
+    deleted = await service.delete("11111111-1111-1111-1111-111111111111")
+
+    assert len(items) == 1
+    assert pagination["total"] == 1
+    assert fetched.name == "Push Day"
+    assert created.name == "Push Day"
+    assert updated.id == "11111111-1111-1111-1111-111111111111"
+    assert deleted is True
+
+    repository.list.assert_awaited_once_with(page=1, page_size=20)
+    repository.get.assert_awaited_once_with("11111111-1111-1111-1111-111111111111")
+    repository.create.assert_awaited_once_with({"name": "Push Day"})
+    repository.update.assert_awaited_once_with(
+        "11111111-1111-1111-1111-111111111111",
+        {"description": "Updated"},
+    )
+    repository.delete.assert_awaited_once_with("11111111-1111-1111-1111-111111111111")
 
 
 @pytest.mark.asyncio

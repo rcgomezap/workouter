@@ -54,6 +54,104 @@ def _routine_set_payload() -> dict[str, object]:
     }
 
 
+def _paginated_routines_payload() -> dict[str, object]:
+    return {
+        "items": [_routine_payload()],
+        "total": 1,
+        "page": 1,
+        "pageSize": 20,
+        "totalPages": 1,
+    }
+
+
+def test_routines_crud_commands_and_delete_validation(mocker) -> None:  # type: ignore[no-untyped-def]
+    calls: list[str] = []
+
+    async def fake_execute(self, query: str, variables=None):  # type: ignore[no-untyped-def]
+        if "query ListRoutines" in query:
+            calls.append("list")
+            return {"routines": _paginated_routines_payload()}
+        if "query GetRoutine" in query:
+            calls.append("get")
+            return {"routine": _routine_payload()}
+        if "mutation CreateRoutine" in query:
+            calls.append("create")
+            return {"createRoutine": _routine_payload()}
+        if "mutation UpdateRoutine" in query:
+            calls.append("update")
+            return {"updateRoutine": _routine_payload()}
+        if "mutation DeleteRoutine" in query:
+            calls.append("delete")
+            return {"deleteRoutine": True}
+        raise AssertionError("Unexpected GraphQL operation")
+
+    mocker.patch(
+        "workouter_cli.infrastructure.graphql.client.GraphQLClient.execute",
+        new=fake_execute,
+    )
+
+    runner = CliRunner(env=_base_env())
+
+    list_result = runner.invoke(
+        cli, ["--json", "routines", "list", "--page", "1", "--page-size", "20"]
+    )
+    assert list_result.exit_code == 0
+    list_payload = json.loads(list_result.output.strip())
+    assert list_payload["data"]["total"] == 1
+
+    get_result = runner.invoke(
+        cli,
+        ["--json", "routines", "get", "11111111-1111-1111-1111-111111111111"],
+    )
+    assert get_result.exit_code == 0
+
+    create_dry_run = runner.invoke(
+        cli,
+        ["--json", "routines", "create", "--name", "Push Day", "--dry-run"],
+    )
+    assert create_dry_run.exit_code == 0
+    assert json.loads(create_dry_run.output.strip())["data"]["dry_run"] is True
+
+    create_result = runner.invoke(
+        cli,
+        ["--json", "routines", "create", "--name", "Push Day"],
+    )
+    assert create_result.exit_code == 0
+
+    update_validation = runner.invoke(
+        cli,
+        ["--json", "routines", "update", "11111111-1111-1111-1111-111111111111"],
+    )
+    assert update_validation.exit_code == 1
+
+    update_result = runner.invoke(
+        cli,
+        [
+            "--json",
+            "routines",
+            "update",
+            "11111111-1111-1111-1111-111111111111",
+            "--description",
+            "Updated",
+        ],
+    )
+    assert update_result.exit_code == 0
+
+    delete_validation = runner.invoke(
+        cli,
+        ["--json", "routines", "delete", "11111111-1111-1111-1111-111111111111"],
+    )
+    assert delete_validation.exit_code == 1
+
+    delete_result = runner.invoke(
+        cli,
+        ["--json", "routines", "delete", "11111111-1111-1111-1111-111111111111", "--force"],
+    )
+    assert delete_result.exit_code == 0
+
+    assert calls == ["list", "get", "create", "update", "delete"]
+
+
 def test_routines_nested_commands_and_remove_validations(mocker) -> None:  # type: ignore[no-untyped-def]
     calls: list[str] = []
 

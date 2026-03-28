@@ -37,6 +37,36 @@ weightReductionPct
 restSeconds
 """
 
+CREATE_ROUTINE = (
+    """
+mutation CreateRoutine($input: CreateRoutineInput!) {
+  createRoutine(input: $input) {
+    %s
+  }
+}
+"""
+    % ROUTINE_FIELDS
+)
+
+
+UPDATE_ROUTINE = (
+    """
+mutation UpdateRoutine($id: UUID!, $input: UpdateRoutineInput!) {
+  updateRoutine(id: $id, input: $input) {
+    %s
+  }
+}
+"""
+    % ROUTINE_FIELDS
+)
+
+
+DELETE_ROUTINE = """
+mutation DeleteRoutine($id: UUID!) {
+  deleteRoutine(id: $id)
+}
+"""
+
 ADD_ROUTINE_EXERCISE = (
     """
 mutation AddRoutineExercise($routineId: UUID!, $input: AddRoutineExerciseInput!) {
