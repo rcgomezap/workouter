@@ -1,0 +1,115 @@
+name: CLI Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-binaries:
+    name: Build binary for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: workouter-cli-linux-x86_64
+            binary_path: cli/dist/workouter-cli
+          - os: macos-latest
+            artifact_name: workouter-cli-macos-arm64
+            binary_path: cli/dist/workouter-cli
+          - os: windows-latest
+            artifact_name: workouter-cli-windows-x86_64.exe
+            binary_path: cli/dist/workouter-cli.exe
+
+    defaults:
+      run:
+        working-directory: ./cli
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: make install
+
+      - name: Build binary
+        run: make binary
+
+      - name: Smoke test (Version)
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            version_output=$(./dist/workouter-cli.exe --version)
+          else
+            version_output=$(./dist/workouter-cli --version)
+          fi
+
+          if [ -z "$version_output" ]; then
+            echo "Binary produced empty --version output"
+            exit 1
+          fi
+
+          echo "$version_output"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.binary_path }}
+          if-no-files-found: error
+
+  create-release:
+    name: Create GitHub Release
+    needs: build-binaries
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Validate tag matches CLI version
+        shell: bash
+        run: |
+          tag_version="${GITHUB_REF_NAME#v}"
+          cli_version=$(python - <<'PY'
+          from pathlib import Path
+          import re
+
+          content = Path("cli/src/workouter_cli/version.py").read_text(encoding="utf-8")
+          match = re.search(r'__version__\s*=\s*"([^"]+)"', content)
+          if not match:
+              raise SystemExit("Could not parse __version__ from cli/src/workouter_cli/version.py")
+          print(match.group(1))
+          PY
+          )
+
+          if [ "$tag_version" != "$cli_version" ]; then
+            echo "Tag version (v$tag_version) does not match CLI version ($cli_version)"
+            exit 1
+          fi
+
+      - name: Create Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create ${{ github.ref_name }} \
+            --title "Release ${{ github.ref_name }}" \
+            --generate-notes \
+            artifacts/*

@@ -30,6 +30,18 @@ export WORKOUTER_API_KEY=your-api-key-here
 uv run workouter-cli --help
 ```
 
+### Self-contained Binary
+
+You can build a single-file executable that doesn't require Python:
+
+```bash
+# Build for your current OS
+make binary
+
+# Use the binary
+./dist/workouter-cli --help
+```
+
 ### Basic Usage
 
 ```bash

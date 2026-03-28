@@ -1,4 +1,4 @@
-.PHONY: help install dev test test-unit test-integration test-cov test-quick lint format type-check build clean docker-build docker-run
+.PHONY: help install dev test test-unit test-integration test-cov test-quick lint lint-fix format type-check build binary binary-smoke binary-clean clean docker-build docker-run all
 
 help: ## Show this help message
 	@echo "Available targets:"
@@ -54,6 +54,25 @@ build: ## Build Docker image
 	docker build -t workouter-cli .
 	@echo "✓ Docker image built: workouter-cli"
 
+binary: ## Build one-file executable via PyInstaller
+	@echo "Building binary..."
+	uv run pyinstaller --onefile --name workouter-cli src/workouter_cli/main.py
+	@echo "✓ Binary built: dist/workouter-cli"
+
+binary-smoke: binary ## Run binary smoke test
+	@echo "Running binary smoke test..."
+	@version_output="$$(./dist/workouter-cli --version)"; \
+	if [ -z "$$version_output" ]; then \
+		echo "✗ Binary produced empty --version output"; \
+		exit 1; \
+	fi; \
+	echo "$$version_output"
+
+binary-clean: ## Remove PyInstaller artifacts
+	@echo "Cleaning binary artifacts..."
+	rm -rf build dist *.spec
+	@echo "✓ Binary artifacts removed"
+
 docker-run: ## Run CLI in Docker (requires env vars)
 	@echo "Running CLI in Docker..."
 	docker run --rm \
@@ -71,6 +90,7 @@ clean: ## Remove cache and build artifacts
 	find . -type f -name ".coverage" -delete 2>/dev/null || true
 	find . -type d -name "dist" -exec rm -rf {} + 2>/dev/null || true
 	find . -type d -name "*.egg-info" -exec rm -rf {} + 2>/dev/null || true
+	find . -type f -name "*.spec" -delete 2>/dev/null || true
 	@echo "✓ Cleanup complete"
 
 all: lint format type-check test ## Run all checks (lint, format, type-check, test)
