@@ -67,7 +67,8 @@ This skill must be able to drive every CLI command group as part of coaching ope
 ### Command coverage map (all CLI groups)
 
 - `workout`: `today`, `start`, `log`, `complete`
-- `exercises`: `list`, `get`, `create`, `update`, `delete`
+- `exercises`: `list`, `get`, `create`, `update`, `assign-muscles`, `delete`
+- `muscle-groups`: `list`
 - `routines`: `list`, `get`, `create`, `update`, `delete`, `add-exercise`, `update-exercise`, `remove-exercise`, `add-set`, `update-set`, `remove-set`
 - `mesocycles`: `list`, `get`, `create`, `update`, `delete`, `add-week`, `update-week`, `remove-week`, `add-session`, `update-session`, `remove-session`
 - `sessions`: `list`, `get`, `create`, `start`, `complete`, `update`, `delete`, `add-exercise`, `update-exercise`, `remove-exercise`, `add-set`, `update-set`, `remove-set`, `log-set`
@@ -93,7 +94,10 @@ Use this as the authoritative translation from coaching intent to CLI command.
 - `exercises get`: inspect one exercise details before adding it to routines/sessions.
 - `exercises create`: add a new movement not yet present in the catalog.
 - `exercises update`: fix naming, equipment, or description metadata.
+- `exercises assign-muscles`: replace an exercise's muscle group assignments using primary and secondary groups (accept names or UUIDs).
 - `exercises delete`: remove obsolete/duplicate exercise entries.
+
+- `muscle-groups list`: fetch all available muscle groups before assignment or validation.
 
 - `routines list`: review available templates before planning blocks.
 - `routines get`: inspect routine structure and targets before editing.
@@ -174,6 +178,12 @@ workouter-cli --json sessions list --status COMPLETED --mesocycle-id <MESOCYCLE_
 
 - `schema`: print machine-readable contract for any command.
 - `ping`: validate startup/config/connectivity in agent setups.
+
+Muscle assignment behavior rules:
+
+- `exercises assign-muscles` is replacement semantics: submitted lists become the full assignment set.
+- To clear assignments, call `exercises assign-muscles <EXERCISE_ID>` with no `--primary/--secondary` values.
+- To avoid accidental removals, always read current state first via `exercises get <EXERCISE_ID>` unless user explicitly asks for full overwrite.
 
 ### 1) Create mesocycle (training block)
 
@@ -317,6 +327,7 @@ Coach interpretation pattern:
 Use lower-level entities when the user requests direct control beyond `workout` shortcuts.
 
 - Exercise library setup and maintenance: `exercises create|update|delete|list|get`
+- Muscle taxonomy discovery and mapping: `muscle-groups list`, then `exercises assign-muscles` by name or UUID
 - Session surgery: `sessions add-exercise|add-set|update-set|remove-set` for mid-session plan adjustments
 - Routine refactoring between weeks: `routines update-exercise|update-set`
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Protocol
 
 from workouter_cli.domain.entities.exercise import Exercise
@@ -33,4 +34,12 @@ class ExerciseRepository(Protocol):
 
     async def delete(self, exercise_id: str) -> bool:
         """Delete one exercise."""
+        ...
+
+    async def assign_muscle_groups(
+        self,
+        exercise_id: str,
+        muscle_group_assignments: Sequence[dict[str, str]],
+    ) -> Exercise:
+        """Assign muscle groups to an exercise with roles."""
         ...

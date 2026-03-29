@@ -131,6 +131,113 @@ def test_exercise_lifecycle_create_list_get_delete(
     assert all(item["id"] != exercise_id for item in final_items)
 
 
+def test_muscle_groups_list_returns_expected_seeded_groups(
+    run_cli: Callable[[list[str]], CLIResult],
+) -> None:
+    cli_payload = _assert_cli_success(run_cli(["--json", "muscle-groups", "list"]))
+    cli_groups = cli_payload["data"]
+    assert isinstance(cli_groups, list)
+    assert cli_groups
+
+    cli_names = {str(item["name"]).lower() for item in cli_groups}
+    assert "chest" in cli_names
+    assert "back" in cli_names
+
+
+def test_assign_muscle_groups_command_resolves_names_and_dry_run_payload(
+    run_cli: Callable[[list[str]], CLIResult],
+) -> None:
+    create_payload = _assert_cli_success(
+        run_cli(
+            [
+                "--json",
+                "exercises",
+                "create",
+                "--name",
+                "E2E Muscle Assignment Exercise",
+            ]
+        )
+    )
+    exercise_id = create_payload["data"]["id"]
+
+    muscle_groups_payload = _assert_cli_success(
+        run_cli(["--json", "muscle-groups", "list"])
+    )
+    muscle_groups = muscle_groups_payload["data"]
+    assert isinstance(muscle_groups, list)
+    assert muscle_groups
+
+    chest_group = next(
+        (item for item in muscle_groups if str(item["name"]).lower() == "chest"),
+        None,
+    )
+    triceps_group = next(
+        (item for item in muscle_groups if str(item["name"]).lower() == "triceps"),
+        None,
+    )
+    assert isinstance(chest_group, dict)
+    assert isinstance(triceps_group, dict)
+
+    dry_run_payload = _assert_cli_success(
+        run_cli(
+            [
+                "--json",
+                "exercises",
+                "assign-muscles",
+                exercise_id,
+                "--primary",
+                "chest",
+                "--secondary",
+                "triceps",
+                "--dry-run",
+            ]
+        )
+    )
+    dry_run_data = dry_run_payload["data"]
+    assert isinstance(dry_run_data, dict)
+    assert dry_run_data["dry_run"] is True
+    assert dry_run_data["operation"] == "assignMuscleGroups"
+    assert "Chest" in dry_run_data["new_primary"]
+    assert "Triceps" in dry_run_data["new_secondary"]
+
+    assign_payload = _assert_cli_success(
+        run_cli(
+            [
+                "--json",
+                "exercises",
+                "assign-muscles",
+                exercise_id,
+                "--primary",
+                str(chest_group["id"]),
+                "--secondary",
+                str(triceps_group["id"]),
+            ]
+        )
+    )
+    assigned = assign_payload["data"]
+    assert isinstance(assigned, dict)
+    assert assigned["id"] == exercise_id
+    assigned_muscles = assigned["muscle_groups"]
+    assert isinstance(assigned_muscles, list)
+    if assigned_muscles:
+        assigned_roles_by_name = {
+            item["muscle_group"]["name"].lower(): item["role"]
+            for item in assigned_muscles
+        }
+        assert assigned_roles_by_name.get("chest") == "PRIMARY"
+        assert assigned_roles_by_name.get("triceps") == "SECONDARY"
+
+    get_payload = _assert_cli_success(
+        run_cli(["--json", "exercises", "get", exercise_id])
+    )
+    persisted = get_payload["data"]
+    assert isinstance(persisted, dict)
+    assert persisted["id"] == exercise_id
+    persisted_muscles = persisted["muscle_groups"]
+    assert isinstance(persisted_muscles, list)
+    assert persisted_muscles == assigned_muscles
+
+
 def test_workout_session_lifecycle_start_log_complete(
     api_runtime: APIRuntime, run_cli: Callable[[list[str]], CLIResult]
 ) -> None:

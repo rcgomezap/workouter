@@ -36,7 +36,26 @@ def _render(ctx: CLIContext, payload: object, command: str) -> None:
 
 
 def _exercise_to_payload(exercise: Exercise) -> dict[str, object]:
-    return asdict(exercise)
+    """Convert exercise to display payload with formatted muscle groups."""
+    data = asdict(exercise)
+
+    # Format muscle groups for display
+    if exercise.muscle_groups:
+        primary_muscles = [
+            emg.muscle_group.name for emg in exercise.muscle_groups if emg.role == "PRIMARY"
+        ]
+        secondary_muscles = [
+            emg.muscle_group.name for emg in exercise.muscle_groups if emg.role == "SECONDARY"
+        ]
+
+        # Add formatted strings for table display
+        data["primary_muscles"] = ", ".join(primary_muscles) if primary_muscles else "-"
+        data["secondary_muscles"] = ", ".join(secondary_muscles) if secondary_muscles else "-"
+    else:
+        data["primary_muscles"] = "-"
+        data["secondary_muscles"] = "-"
+
+    return data
 
 
 @click.group(name="exercises")
@@ -174,3 +193,103 @@ def delete_exercise(ctx: CLIContext, exercise_id: str, force: bool) -> None:
 
     deleted: bool = _run(ctx.exercise_service.delete(exercise_id))
     _render(ctx, {"id": exercise_id, "deleted": deleted}, command="exercises delete")
+
+
+@exercises.command(name="assign-muscles")
+@click.argument("exercise_id")
+@click.option(
+    "--primary",
+    "primary_ids",
+    multiple=True,
+    help="Primary muscle group (name or UUID). Can specify multiple times.",
+)
+@click.option(
+    "--secondary",
+    "secondary_ids",
+    multiple=True,
+    help="Secondary muscle group (name or UUID). Can specify multiple times.",
+)
+@click.option("--dry-run", is_flag=True, help="Show what would be changed without applying")
+@click.pass_obj
+def assign_muscles(
+    ctx: CLIContext,
+    exercise_id: str,
+    primary_ids: tuple[str, ...],
+    secondary_ids: tuple[str, ...],
+    dry_run: bool,
+) -> None:
+    """
+    Assign muscle groups to an exercise.
+
+    Replaces all existing muscle group assignments.
+
+    Examples:
+
+      # Assign by name (case-insensitive)
+      workouter-cli exercises assign-muscles <id> --primary chest --secondary triceps
+
+      # Assign by UUID
+      workouter-cli exercises assign-muscles <id> --primary <uuid>
+
+      # Multiple primary muscles
+      workouter-cli exercises assign-muscles <id> --primary chest --primary shoulders
+
+      # Clear all assignments (no muscle groups)
+      workouter-cli exercises assign-muscles <id>
+    """
+    all_muscle_groups = _run(ctx.muscle_group_service.list_all())
+
+    try:
+        resolved_primary = ctx.muscle_group_service.resolve_muscle_group_ids_from_catalog(
+            primary_ids,
+            all_muscle_groups,
+        )
+        resolved_secondary = ctx.muscle_group_service.resolve_muscle_group_ids_from_catalog(
+            secondary_ids,
+            all_muscle_groups,
+        )
+    except ValueError as e:
+        raise ValidationError(str(e)) from e
+
+    if dry_run:
+        # Fetch current exercise to show diff
+        current_exercise: Exercise = _run(ctx.exercise_service.get(exercise_id))
+        current_primary = [
+            emg.muscle_group.name for emg in current_exercise.muscle_groups if emg.role == "PRIMARY"
+        ]
+        current_secondary = [
+            emg.muscle_group.name
+            for emg in current_exercise.muscle_groups
+            if emg.role == "SECONDARY"
+        ]
+
+        id_to_name = {mg.id: mg.name for mg in all_muscle_groups}
+
+        new_primary = [id_to_name[mg_id] for mg_id in resolved_primary]
+        new_secondary = [id_to_name[mg_id] for mg_id in resolved_secondary]
+
+        _render(
+            ctx,
+            {
+                "dry_run": True,
+                "operation": "assignMuscleGroups",
+                "exercise_id": exercise_id,
+                "exercise_name": current_exercise.name,
+                "current_primary": current_primary if current_primary else ["-"],
+                "current_secondary": current_secondary if current_secondary else ["-"],
+                "new_primary": new_primary if new_primary else ["-"],
+                "new_secondary": new_secondary if new_secondary else ["-"],
+            },
+            command="exercises assign-muscles",
+        )
+        return
+
+    # Apply the assignment
+    exercise: Exercise = _run(
+        ctx.exercise_service.assign_muscle_groups(
+            exercise_id,
+            resolved_primary,
+            resolved_secondary,
+        )
+    )
+    _render(ctx, _exercise_to_payload(exercise), command="exercises assign-muscles")

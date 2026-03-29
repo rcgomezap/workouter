@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 from workouter_cli.domain.entities.exercise import Exercise
 from workouter_cli.domain.repositories.exercise import ExerciseRepository
 from workouter_cli.infrastructure.graphql.client import GraphQLClient
 from workouter_cli.infrastructure.graphql.mappers.response_mapper import map_exercise
 from workouter_cli.infrastructure.graphql.mutations.exercise import (
+    ASSIGN_MUSCLE_GROUPS,
     CREATE_EXERCISE,
     DELETE_EXERCISE,
     UPDATE_EXERCISE,
@@ -62,3 +65,18 @@ class GraphQLExerciseRepository(ExerciseRepository):
     async def delete(self, exercise_id: str) -> bool:
         result = await self.client.execute(DELETE_EXERCISE, {"id": exercise_id})
         return bool(result["deleteExercise"])
+
+    async def assign_muscle_groups(
+        self,
+        exercise_id: str,
+        muscle_group_assignments: Sequence[dict[str, str]],
+    ) -> Exercise:
+        """Assign muscle groups to an exercise with roles (PRIMARY/SECONDARY)."""
+        result = await self.client.execute(
+            ASSIGN_MUSCLE_GROUPS,
+            {
+                "exerciseId": exercise_id,
+                "muscleGroupIds": muscle_group_assignments,
+            },
+        )
+        return map_exercise(result["assignMuscleGroups"])

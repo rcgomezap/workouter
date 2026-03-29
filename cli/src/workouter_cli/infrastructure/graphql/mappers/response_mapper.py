@@ -39,14 +39,19 @@ def map_exercise(data: dict[str, Any]) -> Exercise:
     )
 
 
+def map_muscle_group(data: dict[str, Any]) -> MuscleGroup:
+    """Map GraphQL muscle group payload to domain entity."""
+    return MuscleGroup(
+        id=str(data["id"]),
+        name=str(data["name"]),
+    )
+
+
 def map_exercise_muscle_group(data: dict[str, Any]) -> ExerciseMuscleGroup:
     """Map nested exercise muscle group payload."""
 
     muscle_group_data = data["muscleGroup"]
-    muscle_group = MuscleGroup(
-        id=str(muscle_group_data["id"]),
-        name=str(muscle_group_data["name"]),
-    )
+    muscle_group = map_muscle_group(muscle_group_data)
     return ExerciseMuscleGroup(muscle_group=muscle_group, role=str(data["role"]))
 
 

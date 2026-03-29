@@ -99,10 +99,154 @@ def test_exercises_create_dry_run_does_not_call_api(mocker) -> None:  # type: ig
     )
 
     assert result.exit_code == 0
+    mock_execute.assert_not_awaited()
+
+
+def test_exercises_assign_muscles_json_output(mocker) -> None:  # type: ignore[no-untyped-def]
+    """Test assigning muscle groups to an exercise."""
+    mock_execute = AsyncMock()
+
+    # First call: list muscle groups for all name/UUID resolution
+    # Second call: assign mutation
+    mock_execute.side_effect = [
+        {
+            "muscleGroups": [
+                {"id": "mg-chest", "name": "Chest"},
+                {"id": "mg-triceps", "name": "Triceps"},
+                {"id": "mg-shoulders", "name": "Shoulders"},
+            ]
+        },
+        {
+            "assignMuscleGroups": {
+                "id": "ex1",
+                "name": "Bench Press",
+                "description": None,
+                "equipment": "Barbell",
+                "muscleGroups": [
+                    {
+                        "muscleGroup": {"id": "mg-chest", "name": "Chest"},
+                        "role": "PRIMARY",
+                    },
+                    {
+                        "muscleGroup": {"id": "mg-triceps", "name": "Triceps"},
+                        "role": "SECONDARY",
+                    },
+                ],
+            }
+        },
+    ]
+    mocker.patch(
+        "workouter_cli.infrastructure.graphql.client.GraphQLClient.execute",
+        mock_execute,
+    )
+
+    runner = CliRunner(env=_base_env())
+    result = runner.invoke(
+        cli,
+        [
+            "--json",
+            "exercises",
+            "assign-muscles",
+            "ex1",
+            "--primary",
+            "chest",
+            "--secondary",
+            "triceps",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output.strip())
+    assert payload["success"] is True
+    assert payload["data"]["name"] == "Bench Press"
+    assert len(payload["data"]["muscle_groups"]) == 2
+
+
+def test_exercises_assign_muscles_dry_run(mocker) -> None:  # type: ignore[no-untyped-def]
+    """Test assign-muscles with --dry-run flag."""
+    mock_execute = AsyncMock()
+
+    # First call: list muscle groups for all name resolution and display mapping
+    # Second call: get exercise for dry-run display
+    mock_execute.side_effect = [
+        {
+            "muscleGroups": [
+                {"id": "mg-chest", "name": "Chest"},
+                {"id": "mg-triceps", "name": "Triceps"},
+            ]
+        },
+        {
+            "exercise": {
+                "id": "ex1",
+                "name": "Bench Press",
+                "description": None,
+                "equipment": "Barbell",
+                "muscleGroups": [],  # Currently no muscle groups
+            }
+        },
+    ]
+    mocker.patch(
+        "workouter_cli.infrastructure.graphql.client.GraphQLClient.execute",
+        mock_execute,
+    )
+
+    runner = CliRunner(env=_base_env())
+    result = runner.invoke(
+        cli,
+        [
+            "--json",
+            "exercises",
+            "assign-muscles",
+            "ex1",
+            "--primary",
+            "chest",
+            "--secondary",
+            "triceps",
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code == 0
     payload = json.loads(result.output.strip())
     assert payload["success"] is True
     assert payload["data"]["dry_run"] is True
-    mock_execute.assert_not_called()
+    assert payload["data"]["operation"] == "assignMuscleGroups"
+    # Should not have called the mutation (2 calls total)
+    assert mock_execute.await_count == 2
+
+
+def test_exercises_assign_muscles_invalid_name(mocker) -> None:  # type: ignore[no-untyped-def]
+    """Test assign-muscles with invalid muscle group name."""
+    mock_execute = AsyncMock(
+        return_value={
+            "muscleGroups": [
+                {"id": "mg-chest", "name": "Chest"},
+                {"id": "mg-back", "name": "Back"},
+            ]
+        }
+    )
+    mocker.patch(
+        "workouter_cli.infrastructure.graphql.client.GraphQLClient.execute",
+        mock_execute,
+    )
+
+    runner = CliRunner(env=_base_env())
+    result = runner.invoke(
+        cli,
+        [
+            "--json",
+            "exercises",
+            "assign-muscles",
+            "ex1",
+            "--primary",
+            "InvalidMuscle",
+        ],
+    )
+
+    assert result.exit_code == 1
+    payload = json.loads(result.output.strip())
+    assert payload["success"] is False
+    assert "InvalidMuscle" in payload["error"]["message"]
 
 
 def test_exercises_delete_force_succeeds(mocker) -> None:  # type: ignore[no-untyped-def]

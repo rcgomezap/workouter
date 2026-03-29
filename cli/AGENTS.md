@@ -222,6 +222,7 @@ docker run --rm \
 workouter-cli
 ├── workout          # Workflow commands (start, log, complete, today)
 ├── exercises        # Exercise CRUD operations
+├── muscle-groups    # Muscle group listing and assignment support
 ├── routines         # Routine management
 ├── mesocycles       # Mesocycle management
 ├── sessions         # Session management
@@ -284,6 +285,28 @@ workouter-cli exercises create --name "Exercise Name" [--description TEXT] [--js
 #### Update Commands
 ```bash
 workouter-cli exercises update <UUID> [--name TEXT] [--json] [--dry-run]
+```
+
+#### Assign Muscle Groups
+```bash
+workouter-cli exercises assign-muscles <EXERCISE_ID> [--primary TEXT] [--secondary TEXT] [--json] [--dry-run]
+```
+
+Examples:
+```bash
+# Assign by muscle group names (case-insensitive)
+workouter-cli exercises assign-muscles <exercise-id> --primary chest --secondary triceps
+
+# Assign by UUIDs
+workouter-cli exercises assign-muscles <exercise-id> --primary <muscle-group-uuid>
+
+# Clear all assignments
+workouter-cli exercises assign-muscles <exercise-id>
+```
+
+#### List Muscle Groups
+```bash
+workouter-cli muscle-groups list [--json]
 ```
 
 #### Delete Commands

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 from workouter_cli.application.dto.exercise import CreateExerciseInputDTO, UpdateExerciseInputDTO
 from workouter_cli.domain.entities.exercise import Exercise
 from workouter_cli.domain.repositories.exercise import ExerciseRepository
@@ -38,3 +40,51 @@ class ExerciseService:
 
     async def delete(self, exercise_id: str) -> bool:
         return await self.exercise_repository.delete(exercise_id)
+
+    async def assign_muscle_groups(
+        self,
+        exercise_id: str,
+        primary_ids: Sequence[str],
+        secondary_ids: Sequence[str],
+    ) -> Exercise:
+        """
+        Assign muscle groups to an exercise.
+
+        Replaces all existing muscle group assignments atomically.
+
+        Args:
+            exercise_id: UUID of the exercise
+            primary_ids: List of muscle group UUIDs with PRIMARY role
+            secondary_ids: List of muscle group UUIDs with SECONDARY role
+
+        Returns:
+            Updated exercise with new muscle group assignments
+
+        Raises:
+            ValueError: If same muscle group appears in both roles
+        """
+        # Validate no duplicates within each role
+        if len(set(primary_ids)) != len(primary_ids):
+            raise ValueError("Duplicate muscle group IDs found in PRIMARY assignments")
+        if len(set(secondary_ids)) != len(secondary_ids):
+            raise ValueError("Duplicate muscle group IDs found in SECONDARY assignments")
+
+        # Validate no duplicates between primary and secondary
+        primary_set: set[str] = set(primary_ids)
+        secondary_set: set[str] = set(secondary_ids)
+        overlap = primary_set & secondary_set
+
+        if overlap:
+            raise ValueError(f"Muscle group(s) cannot be both PRIMARY and SECONDARY: {overlap}")
+
+        # Build assignments list
+        assignments: list[dict[str, str]] = []
+        for mg_id in primary_ids:
+            assignments.append({"muscleGroupId": mg_id, "role": "PRIMARY"})
+        for mg_id in secondary_ids:
+            assignments.append({"muscleGroupId": mg_id, "role": "SECONDARY"})
+
+        return await self.exercise_repository.assign_muscle_groups(
+            exercise_id,
+            assignments,
+        )
