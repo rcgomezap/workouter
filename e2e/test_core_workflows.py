@@ -25,6 +25,10 @@ def _assert_cli_success(result: CLIResult) -> dict[str, Any]:
     return payload
 
 
+def _muscle_assignments_by_name(items: list[dict[str, Any]]) -> dict[str, str]:
+    return {item["muscle_group"]["name"].lower(): item["role"] for item in items}
+
+
 def _graphql_request(
     api_runtime: APIRuntime,
     query: str,
@@ -144,7 +148,7 @@ def test_muscle_groups_list_returns_expected_seeded_groups(
     assert "back" in cli_names
 
 
-def test_assign_muscle_groups_command_resolves_names_and_dry_run_payload(
+def test_assign_and_remove_muscle_groups_via_cli(
     run_cli: Callable[[list[str]], CLIResult],
 ) -> None:
     create_payload = _assert_cli_success(
@@ -235,7 +239,27 @@ def test_assign_muscle_groups_command_resolves_names_and_dry_run_payload(
     assert persisted["id"] == exercise_id
     persisted_muscles = persisted["muscle_groups"]
     assert isinstance(persisted_muscles, list)
-    assert persisted_muscles == assigned_muscles
+    assert _muscle_assignments_by_name(
+        persisted_muscles
+    ) == _muscle_assignments_by_name(assigned_muscles)
+
+    clear_payload = _assert_cli_success(
+        run_cli(["--json", "exercises", "assign-muscles", exercise_id])
+    )
+    cleared = clear_payload["data"]
+    assert isinstance(cleared, dict)
+    assert cleared["id"] == exercise_id
+    cleared_muscles = cleared["muscle_groups"]
+    assert isinstance(cleared_muscles, list)
+    assert cleared_muscles == []
+
+    persisted_after_clear_payload = _assert_cli_success(
+        run_cli(["--json", "exercises", "get", exercise_id])
+    )
+    persisted_after_clear = persisted_after_clear_payload["data"]
+    assert isinstance(persisted_after_clear, dict)
+    assert persisted_after_clear["id"] == exercise_id
+    assert persisted_after_clear["muscle_groups"] == []
 
 
 def test_workout_session_lifecycle_start_log_complete(

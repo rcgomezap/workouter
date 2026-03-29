@@ -11,6 +11,8 @@ from app.infrastructure.database.models.exercise import exercise_muscle_group
 from app.infrastructure.database.repositories.exercise import SQLAlchemyExerciseRepository
 from app.infrastructure.database.repositories.muscle_group import SQLAlchemyMuscleGroupRepository
 
+MIN_EXPECTED_TOTAL_EXERCISES = 2
+
 
 @pytest.mark.asyncio
 async def test_exercise_repository_crud(db_session: AsyncSession):
@@ -81,7 +83,7 @@ async def test_exercise_repository_filter_by_muscle_group(db_session: AsyncSessi
     assert len(chest_exercises) == 1
     assert chest_exercises[0].name == "Pushup"
     assert count == 1
-    assert total_count >= 2
+    assert total_count >= MIN_EXPECTED_TOTAL_EXERCISES
 
 
 @pytest.mark.asyncio
@@ -106,7 +108,10 @@ async def test_update_exercise_preserves_muscle_group_assignments(db_session: As
 
     fetched = await ex_repo.get_by_id(ex.id)
     assert fetched is not None
-    assert fetched.muscle_groups is None
+    assert fetched.muscle_groups is not None
+    assert len(fetched.muscle_groups) == 1
+    assert fetched.muscle_groups[0].muscle_group.id == mg.id
+    assert fetched.muscle_groups[0].role == MuscleRole.PRIMARY
 
     fetched.name = "Incline Bench Press"
     await ex_repo.update(fetched)
