@@ -41,6 +41,7 @@ from app.presentation.graphql.context import Context
 from app.presentation.graphql.schema import schema
 from app.presentation.middleware.auth import AuthMiddleware
 from app.presentation.middleware.logging import LoggingMiddleware
+from app.version import __version__
 
 
 async def get_context(
@@ -162,7 +163,10 @@ def create_app(
         await close_database()
 
     app = FastAPI(
-        title="Workout Tracker API", version="0.1.0", debug=config.server.debug, lifespan=lifespan
+        title="Workout Tracker API",
+        version=__version__,
+        debug=config.server.debug,
+        lifespan=lifespan,
     )
 
     # Middleware

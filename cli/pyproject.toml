@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "workouter-cli"
-version = "0.1.3.dev1"
+version = "0.1.4.dev1"
 description = "Command-line interface for Workouter API"
 readme = "README.md"
 requires-python = ">=3.14"
