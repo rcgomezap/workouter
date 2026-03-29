@@ -131,6 +131,129 @@ def test_exercise_lifecycle_create_list_get_delete(
     assert all(item["id"] != exercise_id for item in final_items)
 
 
+def test_muscle_groups_list_matches_graphql_source_of_truth(
+    api_runtime: APIRuntime, run_cli: Callable[[list[str]], CLIResult]
+) -> None:
+    cli_payload = _assert_cli_success(run_cli(["--json", "muscle-groups", "list"]))
+    cli_groups = cli_payload["data"]
+    assert isinstance(cli_groups, list)
+    assert cli_groups
+
+    graphql_data = _graphql_request(
+        api_runtime,
+        query="""
+        query MuscleGroups {
+          muscleGroups {
+            id
+            name
+          }
+        }
+        """,
+    )
+    graphql_groups = graphql_data["muscleGroups"]
+    assert isinstance(graphql_groups, list)
+    assert graphql_groups
+
+    cli_ids = {item["id"] for item in cli_groups}
+    graphql_ids = {item["id"] for item in graphql_groups}
+    assert cli_ids == graphql_ids
+
+    cli_names = {str(item["name"]).lower() for item in cli_groups}
+    assert "chest" in cli_names
+    assert "back" in cli_names
+
+
+def test_assign_muscle_groups_command_resolves_names_and_dry_run_payload(
+    api_runtime: APIRuntime, run_cli: Callable[[list[str]], CLIResult]
+) -> None:
+    create_payload = _assert_cli_success(
+        run_cli(
+            [
+                "--json",
+                "exercises",
+                "create",
+                "--name",
+                "E2E Muscle Assignment Exercise",
+            ]
+        )
+    )
+    exercise_id = create_payload["data"]["id"]
+
+    muscle_groups_payload = _assert_cli_success(
+        run_cli(["--json", "muscle-groups", "list"])
+    )
+    muscle_groups = muscle_groups_payload["data"]
+    assert isinstance(muscle_groups, list)
+    assert muscle_groups
+
+    chest_group = next(
+        (item for item in muscle_groups if str(item["name"]).lower() == "chest"),
+        None,
+    )
+    triceps_group = next(
+        (item for item in muscle_groups if str(item["name"]).lower() == "triceps"),
+        None,
+    )
+    assert isinstance(chest_group, dict)
+    assert isinstance(triceps_group, dict)
+
+    dry_run_payload = _assert_cli_success(
+        run_cli(
+            [
+                "--json",
+                "exercises",
+                "assign-muscles",
+                exercise_id,
+                "--primary",
+                "chest",
+                "--secondary",
+                "triceps",
+                "--dry-run",
+            ]
+        )
+    )
+    dry_run_data = dry_run_payload["data"]
+    assert isinstance(dry_run_data, dict)
+    assert dry_run_data["dry_run"] is True
+    assert dry_run_data["operation"] == "assignMuscleGroups"
+    assert "Chest" in dry_run_data["new_primary"]
+    assert "Triceps" in dry_run_data["new_secondary"]
+
+    assign_payload = _assert_cli_success(
+        run_cli(
+            [
+                "--json",
+                "exercises",
+                "assign-muscles",
+                exercise_id,
+                "--primary",
+                str(chest_group["id"]),
+                "--secondary",
+                str(triceps_group["id"]),
+            ]
+        )
+    )
+    assigned = assign_payload["data"]
+    assert isinstance(assigned, dict)
+    assert assigned["id"] == exercise_id
+
+    exercise_data = _graphql_request(
+        api_runtime,
+        query="""
+        query GetExercise($id: UUID!) {
+          exercise(id: $id) {
+            id
+            name
+          }
+        }
+        """,
+        variables={"id": exercise_id},
+    )
+    persisted = exercise_data["exercise"]
+    assert isinstance(persisted, dict)
+    assert persisted["id"] == exercise_id
+
+
 def test_workout_session_lifecycle_start_log_complete(
     api_runtime: APIRuntime, run_cli: Callable[[list[str]], CLIResult]
 ) -> None:

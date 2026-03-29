@@ -49,3 +49,52 @@ async def test_service_create_passes_serialized_payload() -> None:
     await service.create(dto)
 
     repo.create.assert_awaited_once_with({"name": "Bench Press", "equipment": "Barbell"})
+
+
+@pytest.mark.asyncio
+async def test_assign_muscle_groups_success() -> None:
+    """Test assigning muscle groups to an exercise."""
+    repo = AsyncMock()
+    from workouter_cli.domain.entities.exercise import Exercise
+
+    mock_exercise = Exercise(
+        id="ex1",
+        name="Bench Press",
+        description=None,
+        equipment=None,
+        muscle_groups=(),
+    )
+    repo.assign_muscle_groups = AsyncMock(return_value=mock_exercise)
+    service = ExerciseService(exercise_repository=repo)
+
+    result = await service.assign_muscle_groups(
+        "ex1",
+        primary_ids=["mg1", "mg2"],
+        secondary_ids=["mg3"],
+    )
+
+    assert result == mock_exercise
+    repo.assign_muscle_groups.assert_awaited_once_with(
+        "ex1",
+        [
+            {"muscleGroupId": "mg1", "role": "PRIMARY"},
+            {"muscleGroupId": "mg2", "role": "PRIMARY"},
+            {"muscleGroupId": "mg3", "role": "SECONDARY"},
+        ],
+    )
+
+
+@pytest.mark.asyncio
+async def test_assign_muscle_groups_rejects_duplicate_roles() -> None:
+    """Test that assigning same muscle group to both roles raises error."""
+    repo = AsyncMock()
+    service = ExerciseService(exercise_repository=repo)
+
+    with pytest.raises(ValueError, match="cannot be both PRIMARY and SECONDARY"):
+        await service.assign_muscle_groups(
+            "ex1",
+            primary_ids=["mg1", "mg2"],
+            secondary_ids=["mg2"],  # mg2 appears in both!
+        )
+
+    repo.assign_muscle_groups.assert_not_awaited()
