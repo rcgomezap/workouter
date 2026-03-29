@@ -1,4 +1,4 @@
-.PHONY: help install dev test test-unit test-integration test-cov test-quick lint lint-fix format type-check build binary binary-onedir binary-smoke appimage binary-clean clean docker-build docker-run all
+.PHONY: help install dev test test-unit test-integration test-cov test-quick lint lint-fix format type-check build binary binary-smoke binary-clean clean docker-build docker-run all
 
 help: ## Show this help message
 	@echo "Available targets:"
@@ -54,15 +54,10 @@ build: ## Build Docker image
 	docker build -t workouter-cli .
 	@echo "✓ Docker image built: workouter-cli"
 
-binary: ## Build one-file executable via PyInstaller
+binary: ## Build one-file executable via Nuitka
 	@echo "Building binary..."
-	uv run pyinstaller --onefile --name workouter-cli src/workouter_cli/main.py
+	uv run python -m nuitka --onefile --assume-yes-for-downloads --follow-imports --output-dir=dist --output-filename=workouter-cli src/workouter_cli/main.py
 	@echo "✓ Binary built: dist/workouter-cli"
-
-binary-onedir: ## Build one-dir executable bundle via PyInstaller
-	@echo "Building one-dir bundle..."
-	uv run pyinstaller --onedir --name workouter-cli src/workouter_cli/main.py
-	@echo "✓ Bundle built: dist/workouter-cli/"
 
 binary-smoke: binary ## Run binary smoke test
 	@echo "Running binary smoke test..."
@@ -77,21 +72,6 @@ binary-clean: ## Remove PyInstaller artifacts
 	@echo "Cleaning binary artifacts..."
 	rm -rf build dist *.spec
 	@echo "✓ Binary artifacts removed"
-
-appimage: binary-onedir ## Build Linux AppImage from one-dir bundle
-	@echo "Building AppImage..."
-	rm -rf AppDir
-	mkdir -p AppDir/usr/bin
-	cp -R dist/workouter-cli/. AppDir/usr/bin/
-	printf '%s\n' '#!/bin/sh' 'HERE=$$(dirname "$$(readlink -f "$$0")")' 'exec "$$HERE/usr/bin/workouter-cli" "$$@"' > AppDir/AppRun
-	chmod +x AppDir/AppRun
-	printf '%s\n' '[Desktop Entry]' 'Type=Application' 'Name=Workouter CLI' 'Exec=workouter-cli --help' 'Icon=workouter-cli' 'Categories=Utility;' 'Terminal=true' > AppDir/workouter-cli.desktop
-	printf '%s\n' '<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><rect width="256" height="256" rx="48" fill="#111827"/><text x="50%" y="56%" dominant-baseline="middle" text-anchor="middle" fill="#f9fafb" font-family="monospace" font-size="72" font-weight="700">WO</text></svg>' > AppDir/workouter-cli.svg
-	ln -sf workouter-cli.svg AppDir/.DirIcon
-	if [ ! -x ./appimagetool-x86_64.AppImage ]; then curl -sSL -o appimagetool-x86_64.AppImage https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage; chmod +x appimagetool-x86_64.AppImage; fi
-	ARCH=x86_64 APPIMAGE_EXTRACT_AND_RUN=1 ./appimagetool-x86_64.AppImage AppDir dist/workouter-cli-linux-x86_64.AppImage
-	rm -rf AppDir build dist/workouter-cli *.spec
-	@echo "✓ AppImage built: dist/workouter-cli-linux-x86_64.AppImage"
 
 docker-run: ## Run CLI in Docker (requires env vars)
 	@echo "Running CLI in Docker..."

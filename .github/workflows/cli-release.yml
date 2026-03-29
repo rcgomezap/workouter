@@ -18,10 +18,10 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            artifact_name: workouter-cli-linux-x86_64.AppImage
-            artifact_path: cli/dist/workouter-cli-linux-x86_64.AppImage
-            build_target: appimage
-            smoke_command: ./dist/workouter-cli-linux-x86_64.AppImage --version
+            artifact_name: workouter-cli-linux-x86_64
+            artifact_path: cli/dist/workouter-cli
+            build_target: binary
+            smoke_command: ./dist/workouter-cli --version
           - os: macos-latest
             artifact_name: workouter-cli-macos-arm64
             artifact_path: cli/dist/workouter-cli
@@ -55,11 +55,7 @@ jobs:
       - name: Smoke test (Version)
         shell: bash
         run: |
-          if [ "${{ runner.os }}" = "Linux" ] && [[ "${{ matrix.artifact_name }}" == *.AppImage ]]; then
-            version_output=$(APPIMAGE_EXTRACT_AND_RUN=1 ${{ matrix.smoke_command }})
-          else
-            version_output=$(${{ matrix.smoke_command }})
-          fi
+          version_output=$(${{ matrix.smoke_command }})
 
           if [ -z "$version_output" ]; then
             echo "Binary produced empty --version output"
@@ -93,7 +89,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p release-assets
-          cp artifacts/workouter-cli-linux-x86_64.AppImage/workouter-cli-linux-x86_64.AppImage release-assets/workouter-cli-linux-x86_64.AppImage
+          cp artifacts/workouter-cli-linux-x86_64/workouter-cli release-assets/workouter-cli-linux-x86_64
           cp artifacts/workouter-cli-macos-arm64/workouter-cli release-assets/workouter-cli-macos-arm64
           cp artifacts/workouter-cli-windows-x86_64.exe/workouter-cli.exe release-assets/workouter-cli-windows-x86_64.exe
 

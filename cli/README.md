@@ -42,17 +42,11 @@ make binary
 ./dist/workouter-cli --help
 ```
 
-For Linux distribution, the release pipeline publishes an AppImage artifact (`workouter-cli-linux-x86_64.AppImage`):
+For Linux distribution, the release pipeline publishes a standalone executable (`workouter-cli-linux-x86_64`):
 
 ```bash
-chmod +x workouter-cli-linux-x86_64.AppImage
-./workouter-cli-linux-x86_64.AppImage --help
-```
-
-If your system does not provide `libfuse.so.2`, run it in extract-and-run mode:
-
-```bash
-APPIMAGE_EXTRACT_AND_RUN=1 ./workouter-cli-linux-x86_64.AppImage --help
+chmod +x workouter-cli-linux-x86_64
+./workouter-cli-linux-x86_64 --help
 ```
 
 ### Basic Usage
