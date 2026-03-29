@@ -2,6 +2,83 @@
 
 A modern workout tracking platform with GraphQL API, CLI, and end-to-end testing. Built with Python, FastAPI, and Clean Architecture principles.
 
+## Quick Start (Users)
+
+Get Workouter running in minutes with the published API image and the CLI.
+
+### 1) Start API with Docker
+
+Create a local `config.yaml` (you can copy `api/config.example.yaml`) and set a secure API key:
+
+```yaml
+server:
+  host: "0.0.0.0"
+  port: 8000
+  debug: false
+
+database:
+  url: "sqlite+aiosqlite:///./data/workout_tracker.db"
+  echo: false
+
+auth:
+  api_key: "replace-with-your-api-key"
+```
+
+Run the API container:
+
+```bash
+mkdir -p data backups
+
+# Use latest
+docker run --rm -p 8000:8000 \
+  -e CONFIG_PATH=/app/config.yaml \
+  -v "$(pwd)/config.yaml:/app/config.yaml" \
+  -v "$(pwd)/data:/app/data" \
+  -v "$(pwd)/backups:/app/backups" \
+  rcgomezap/workouter-api:latest
+
+# Or pin to a specific release
+docker run --rm -p 8000:8000 \
+  -e CONFIG_PATH=/app/config.yaml \
+  -v "$(pwd)/config.yaml:/app/config.yaml" \
+  -v "$(pwd)/data:/app/data" \
+  -v "$(pwd)/backups:/app/backups" \
+  rcgomezap/workouter-api:x.x.x
+```
+
+### 2) Run CLI
+
+Set API connection variables:
+
+```bash
+export WORKOUTER_API_URL=http://localhost:8000/graphql
+export WORKOUTER_API_KEY=replace-with-your-api-key
+```
+
+Use either Python or a release binary:
+
+```bash
+# Option A: Python + uv
+cd cli
+uv sync
+uv run workouter-cli --help
+
+# Option B: standalone binary from GitHub Releases
+# https://github.com/rcgomezap/workouter/releases
+./workouter-cli-<platform> --help
+```
+
+### 3) Verify API
+
+- GraphQL: `http://localhost:8000/graphql`
+- Health: `http://localhost:8000/health`
+
+### Recommended for AI-Agent CLI Usage
+
+- Keep CLI skills available when operating with AI agents.
+- Tool-focused skill: `cli/.agents/skills/workouter-cli/SKILL.md`
+- Coaching workflow skill: `cli/.agents/skills/workouter-coach/SKILL.md`
+
 ## Overview
 
 Workouter helps you track your fitness progress through structured mesocycles, routines, and workout sessions. It provides:
@@ -41,7 +118,7 @@ The backend service powering Workouter, built with FastAPI and Strawberry GraphQ
 - Automated database backups
 - Comprehensive test suite (unit + integration)
 
-**Quick Start**:
+**Quick Start (Dev)**:
 ```bash
 cd api
 make install    # Complete setup (dependencies, hooks, migrations, seed data)
@@ -63,7 +140,7 @@ A command-line interface for interacting with the Workouter API.
 - Async GraphQL client
 - Comprehensive test coverage (85%+)
 
-**Quick Start**:
+**Quick Start (Dev)**:
 ```bash
 cd cli
 uv sync
@@ -96,6 +173,8 @@ uv run pytest
 See [e2e/AGENTS.md](./e2e/AGENTS.md) for full documentation.
 
 ## Quick Start (All Components)
+
+This section is for contributors working on API + CLI + E2E in the monorepo.
 
 ### Prerequisites
 
@@ -193,8 +272,8 @@ This project uses GitHub Actions for continuous integration:
 
 All checks must pass before merging to `main`.
 
-When a release tag like `v0.1.3` is pushed, CLI binaries are published to GitHub Releases
-and the API image is published to DockerHub with matching tags (`0.1.3` and `latest`).
+When a release tag like `vX.Y.Z` is pushed, CLI binaries are published to GitHub Releases
+and the API image is published to DockerHub with matching tags (`x.x.x` and `latest`).
 
 ## Architecture
 
@@ -303,6 +382,10 @@ Each component can be built and deployed with Docker:
 cd api
 make docker-up      # Start with Docker Compose
 make docker-down    # Stop containers
+
+# Pull published API image
+docker pull rcgomezap/workouter-api:latest
+docker pull rcgomezap/workouter-api:x.x.x
 
 # CLI
 cd cli
