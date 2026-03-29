@@ -131,7 +131,7 @@ def test_exercise_lifecycle_create_list_get_delete(
     assert all(item["id"] != exercise_id for item in final_items)
 
 
-def test_muscle_groups_list_matches_graphql_source_of_truth(
+def test_muscle_groups_list_returns_expected_seeded_groups(
     run_cli: Callable[[list[str]], CLIResult],
 ) -> None:
     cli_payload = _assert_cli_success(run_cli(["--json", "muscle-groups", "list"]))
@@ -219,6 +219,13 @@ def test_assign_muscle_groups_command_resolves_names_and_dry_run_payload(
     assert assigned["id"] == exercise_id
     assigned_muscles = assigned["muscle_groups"]
     assert isinstance(assigned_muscles, list)
+    if assigned_muscles:
+        assigned_roles_by_name = {
+            item["muscle_group"]["name"].lower(): item["role"]
+            for item in assigned_muscles
+        }
+        assert assigned_roles_by_name.get("chest") == "PRIMARY"
+        assert assigned_roles_by_name.get("triceps") == "SECONDARY"
 
     get_payload = _assert_cli_success(
         run_cli(["--json", "exercises", "get", exercise_id])
@@ -226,6 +233,9 @@ def test_assign_muscle_groups_command_resolves_names_and_dry_run_payload(
     persisted = get_payload["data"]
     assert isinstance(persisted, dict)
     assert persisted["id"] == exercise_id
+    persisted_muscles = persisted["muscle_groups"]
+    assert isinstance(persisted_muscles, list)
+    assert persisted_muscles == assigned_muscles
 
 
 def test_workout_session_lifecycle_start_log_complete(
