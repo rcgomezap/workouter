@@ -121,7 +121,7 @@ class SQLAlchemyExerciseRepository(
         return refreshed
 
     async def _get_roles_by_exercise(
-        self, exercise_ids: list[UUID]
+        self, exercise_ids: Sequence[UUID]
     ) -> dict[UUID, dict[UUID, MuscleRole]]:
         if not exercise_ids:
             return {}
