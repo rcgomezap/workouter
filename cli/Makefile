@@ -1,4 +1,4 @@
-.PHONY: help install dev test test-unit test-integration test-cov test-quick lint lint-fix format type-check build binary binary-linux-nuitka binary-smoke binary-clean clean docker-build docker-run all
+.PHONY: help install dev test test-unit test-integration test-cov test-quick lint lint-fix format type-check build binary binary-smoke binary-clean clean docker-build docker-run all
 
 help: ## Show this help message
 	@echo "Available targets:"
@@ -54,16 +54,10 @@ build: ## Build Docker image
 	docker build -t workouter-cli .
 	@echo "✓ Docker image built: workouter-cli"
 
-binary: ## Build one-file executable via PyInstaller
+binary: ## Build one-file executable via Nuitka
 	@echo "Building binary..."
-	uv run pyinstaller --onefile --name workouter-cli src/workouter_cli/main.py
-	execstack -c dist/workouter-cli || true
-	@echo "✓ Binary built: dist/workouter-cli"
-
-binary-linux-nuitka: ## Build Linux standalone executable via Nuitka
-	@echo "Building Linux binary with Nuitka..."
 	uv run python -m nuitka --onefile --assume-yes-for-downloads --follow-imports --output-dir=dist --output-filename=workouter-cli src/workouter_cli/main.py
-	@echo "✓ Linux binary built: dist/workouter-cli"
+	@echo "✓ Binary built: dist/workouter-cli"
 
 binary-smoke: binary ## Run binary smoke test
 	@echo "Running binary smoke test..."

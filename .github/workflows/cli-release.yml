@@ -20,7 +20,7 @@ jobs:
           - os: ubuntu-latest
             artifact_name: workouter-cli-linux-x86_64
             artifact_path: cli/dist/workouter-cli
-            build_target: binary-linux-nuitka
+            build_target: binary
             smoke_command: ./dist/workouter-cli --version
           - os: macos-latest
             artifact_name: workouter-cli-macos-arm64
