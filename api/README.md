@@ -102,6 +102,34 @@ make docker-up    # or: docker compose up --build
 make docker-down  # or: docker compose down
 ```
 
+### DockerHub Image
+
+Release tags (`v*`) publish a multi-arch API image to DockerHub with the same shared
+version as the CLI.
+
+```bash
+# Stable tag for a release
+docker pull <dockerhub-username>/workouter-api:0.1.3
+
+# Latest release
+docker pull <dockerhub-username>/workouter-api:latest
+```
+
+Supported platforms:
+- `linux/amd64`
+- `linux/arm64`
+
+To run the published image with your local config/data volumes:
+
+```bash
+docker run --rm -p 8000:8000 \
+  -e CONFIG_PATH=/app/config.yaml \
+  -v "$(pwd)/config.yaml:/app/config.yaml" \
+  -v "$(pwd)/data:/app/data" \
+  -v "$(pwd)/backups:/app/backups" \
+  <dockerhub-username>/workouter-api:latest
+```
+
 ## Documentation
 
 - **GraphQL API**: Visit `/graphql` for the interactive playground (when `server.debug` is true).

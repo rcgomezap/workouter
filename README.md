@@ -187,10 +187,14 @@ This project uses GitHub Actions for continuous integration:
 
 - **[API CI](./.github/workflows/api-ci.yml)**: Runs API tests on every PR
 - **[API Auto-Format](./.github/workflows/api-auto-format.yml)**: Auto-formats Python code in API
+- **[API Docker Release](./.github/workflows/api-docker-release.yml)**: Publishes API Docker images on `v*` tags
 - **[CLI CI](./.github/workflows/cli-ci.yml)**: Runs CLI tests on every PR
 - **[E2E CI](./.github/workflows/e2e-ci.yml)**: Runs end-to-end integration tests
 
 All checks must pass before merging to `main`.
+
+When a release tag like `v0.1.3` is pushed, CLI binaries are published to GitHub Releases
+and the API image is published to DockerHub with matching tags (`0.1.3` and `latest`).
 
 ## Architecture
 
