@@ -237,18 +237,17 @@ def assign_muscles(
       # Clear all assignments (no muscle groups)
       workouter-cli exercises assign-muscles <id>
     """
-    # Resolve all muscle group names/UUIDs to UUIDs
-    resolved_primary: list[str] = []
-    resolved_secondary: list[str] = []
+    all_muscle_groups = _run(ctx.muscle_group_service.list_all())
 
     try:
-        for name_or_id in primary_ids:
-            resolved_id = _run(ctx.muscle_group_service.resolve_muscle_group_id(name_or_id))
-            resolved_primary.append(resolved_id)
-
-        for name_or_id in secondary_ids:
-            resolved_id = _run(ctx.muscle_group_service.resolve_muscle_group_id(name_or_id))
-            resolved_secondary.append(resolved_id)
+        resolved_primary = ctx.muscle_group_service.resolve_muscle_group_ids_from_catalog(
+            primary_ids,
+            all_muscle_groups,
+        )
+        resolved_secondary = ctx.muscle_group_service.resolve_muscle_group_ids_from_catalog(
+            secondary_ids,
+            all_muscle_groups,
+        )
     except ValueError as e:
         raise ValidationError(str(e)) from e
 
@@ -264,8 +263,6 @@ def assign_muscles(
             if emg.role == "SECONDARY"
         ]
 
-        # Get names for the new assignments
-        all_muscle_groups = _run(ctx.muscle_group_service.list_all())
         id_to_name = {mg.id: mg.name for mg in all_muscle_groups}
 
         new_primary = [id_to_name[mg_id] for mg_id in resolved_primary]

@@ -102,3 +102,39 @@ async def test_resolve_muscle_group_id_not_found_by_uuid() -> None:
 
     with pytest.raises(ValueError, match="Muscle group with ID"):
         await service.resolve_muscle_group_id("550e8400-e29b-41d4-a716-446655440099")
+
+
+@pytest.mark.asyncio
+async def test_resolve_muscle_group_ids_bulk_uses_single_lookup() -> None:
+    """Test bulk resolution fetches catalog once and resolves mixed inputs."""
+    repo = AsyncMock()
+    mock_groups = [
+        MuscleGroup(id="550e8400-e29b-41d4-a716-446655440000", name="Chest"),
+        MuscleGroup(id="550e8400-e29b-41d4-a716-446655440001", name="Triceps"),
+    ]
+    repo.list_all = AsyncMock(return_value=mock_groups)
+    service = MuscleGroupService(muscle_group_repository=repo)
+
+    result = await service.resolve_muscle_group_ids(
+        ["chest", "550e8400-e29b-41d4-a716-446655440001"]
+    )
+
+    assert result == [
+        "550e8400-e29b-41d4-a716-446655440000",
+        "550e8400-e29b-41d4-a716-446655440001",
+    ]
+    repo.list_all.assert_awaited_once()
+
+
+def test_resolve_muscle_group_ids_from_catalog() -> None:
+    """Test resolving from pre-fetched catalog without repository call."""
+    repo = AsyncMock()
+    service = MuscleGroupService(muscle_group_repository=repo)
+    catalog = [
+        MuscleGroup(id="id1", name="Chest"),
+        MuscleGroup(id="id2", name="Back"),
+    ]
+
+    result = service.resolve_muscle_group_ids_from_catalog(["chest", "back"], catalog)
+
+    assert result == ["id1", "id2"]

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 from workouter_cli.domain.entities.exercise import MuscleGroup
 from workouter_cli.domain.repositories.muscle_group import MuscleGroupRepository
 
@@ -16,6 +18,11 @@ class MuscleGroupService:
         """List all muscle groups."""
         return await self.muscle_group_repository.list_all()
 
+    async def resolve_muscle_group_ids(self, names_or_ids: Sequence[str]) -> list[str]:
+        """Resolve many muscle group names/UUIDs to UUIDs with one lookup."""
+        all_groups = await self.list_all()
+        return self.resolve_muscle_group_ids_from_catalog(names_or_ids, all_groups)
+
     async def resolve_muscle_group_id(self, name_or_id: str) -> str:
         """
         Resolve muscle group name or UUID to UUID.
@@ -29,16 +36,32 @@ class MuscleGroupService:
         Raises:
             ValueError: If muscle group not found or name is ambiguous
         """
+        all_groups = await self.list_all()
+        return self._resolve_muscle_group_id_from_catalog(name_or_id, all_groups)
+
+    def resolve_muscle_group_ids_from_catalog(
+        self,
+        names_or_ids: Sequence[str],
+        all_groups: Sequence[MuscleGroup],
+    ) -> list[str]:
+        """Resolve many muscle group names/UUIDs from a pre-fetched list."""
+        return [
+            self._resolve_muscle_group_id_from_catalog(value, all_groups) for value in names_or_ids
+        ]
+
+    def _resolve_muscle_group_id_from_catalog(
+        self,
+        name_or_id: str,
+        all_groups: Sequence[MuscleGroup],
+    ) -> str:
+        """Resolve one muscle group from a pre-fetched list."""
         # Check if it's already a valid UUID format
         if self._is_uuid_format(name_or_id):
-            # Validate it exists
-            all_groups = await self.list_all()
-            if any(g.id == name_or_id for g in all_groups):
+            if any(group.id == name_or_id for group in all_groups):
                 return name_or_id
             raise ValueError(f"Muscle group with ID '{name_or_id}' not found")
 
         # Try to find by name (case-insensitive)
-        all_groups = await self.list_all()
         matches = [g for g in all_groups if g.name.lower() == name_or_id.lower()]
 
         if len(matches) == 0:

@@ -104,20 +104,11 @@ def test_exercises_create_dry_run_does_not_call_api(mocker) -> None:  # type: ig
 
 def test_exercises_assign_muscles_json_output(mocker) -> None:  # type: ignore[no-untyped-def]
     """Test assigning muscle groups to an exercise."""
-    # Mock list_all for name resolution
     mock_execute = AsyncMock()
 
-    # First call: list muscle groups for primary name resolution
-    # Second call: list muscle groups for secondary name resolution
-    # Third call: assign mutation
+    # First call: list muscle groups for all name/UUID resolution
+    # Second call: assign mutation
     mock_execute.side_effect = [
-        {
-            "muscleGroups": [
-                {"id": "mg-chest", "name": "Chest"},
-                {"id": "mg-triceps", "name": "Triceps"},
-                {"id": "mg-shoulders", "name": "Shoulders"},
-            ]
-        },
         {
             "muscleGroups": [
                 {"id": "mg-chest", "name": "Chest"},
@@ -175,17 +166,9 @@ def test_exercises_assign_muscles_dry_run(mocker) -> None:  # type: ignore[no-un
     """Test assign-muscles with --dry-run flag."""
     mock_execute = AsyncMock()
 
-    # First call: list muscle groups for primary name resolution
-    # Second call: list muscle groups for secondary name resolution
-    # Third call: get exercise for dry-run display
-    # Fourth call: list muscle groups again for name mapping
+    # First call: list muscle groups for all name resolution and display mapping
+    # Second call: get exercise for dry-run display
     mock_execute.side_effect = [
-        {
-            "muscleGroups": [
-                {"id": "mg-chest", "name": "Chest"},
-                {"id": "mg-triceps", "name": "Triceps"},
-            ]
-        },
         {
             "muscleGroups": [
                 {"id": "mg-chest", "name": "Chest"},
@@ -200,12 +183,6 @@ def test_exercises_assign_muscles_dry_run(mocker) -> None:  # type: ignore[no-un
                 "equipment": "Barbell",
                 "muscleGroups": [],  # Currently no muscle groups
             }
-        },
-        {
-            "muscleGroups": [
-                {"id": "mg-chest", "name": "Chest"},
-                {"id": "mg-triceps", "name": "Triceps"},
-            ]
         },
     ]
     mocker.patch(
@@ -234,8 +211,8 @@ def test_exercises_assign_muscles_dry_run(mocker) -> None:  # type: ignore[no-un
     assert payload["success"] is True
     assert payload["data"]["dry_run"] is True
     assert payload["data"]["operation"] == "assignMuscleGroups"
-    # Should not have called the mutation (4 calls total, none are assignment mutation)
-    assert mock_execute.await_count == 4
+    # Should not have called the mutation (2 calls total)
+    assert mock_execute.await_count == 2
 
 
 def test_exercises_assign_muscles_invalid_name(mocker) -> None:  # type: ignore[no-untyped-def]

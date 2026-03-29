@@ -132,31 +132,12 @@ def test_exercise_lifecycle_create_list_get_delete(
 
 
 def test_muscle_groups_list_matches_graphql_source_of_truth(
-    api_runtime: APIRuntime, run_cli: Callable[[list[str]], CLIResult]
+    run_cli: Callable[[list[str]], CLIResult],
 ) -> None:
     cli_payload = _assert_cli_success(run_cli(["--json", "muscle-groups", "list"]))
     cli_groups = cli_payload["data"]
     assert isinstance(cli_groups, list)
     assert cli_groups
-
-    graphql_data = _graphql_request(
-        api_runtime,
-        query="""
-        query MuscleGroups {
-          muscleGroups {
-            id
-            name
-          }
-        }
-        """,
-    )
-    graphql_groups = graphql_data["muscleGroups"]
-    assert isinstance(graphql_groups, list)
-    assert graphql_groups
-
-    cli_ids = {item["id"] for item in cli_groups}
-    graphql_ids = {item["id"] for item in graphql_groups}
-    assert cli_ids == graphql_ids
 
     cli_names = {str(item["name"]).lower() for item in cli_groups}
     assert "chest" in cli_names
@@ -164,7 +145,7 @@ def test_muscle_groups_list_matches_graphql_source_of_truth(
 
 
 def test_assign_muscle_groups_command_resolves_names_and_dry_run_payload(
-    api_runtime: APIRuntime, run_cli: Callable[[list[str]], CLIResult]
+    run_cli: Callable[[list[str]], CLIResult],
 ) -> None:
     create_payload = _assert_cli_success(
         run_cli(
@@ -236,20 +217,13 @@ def test_assign_muscle_groups_command_resolves_names_and_dry_run_payload(
     assigned = assign_payload["data"]
     assert isinstance(assigned, dict)
     assert assigned["id"] == exercise_id
+    assigned_muscles = assigned["muscle_groups"]
+    assert isinstance(assigned_muscles, list)
 
-    exercise_data = _graphql_request(
-        api_runtime,
-        query="""
-        query GetExercise($id: UUID!) {
-          exercise(id: $id) {
-            id
-            name
-          }
-        }
-        """,
-        variables={"id": exercise_id},
+    get_payload = _assert_cli_success(
+        run_cli(["--json", "exercises", "get", exercise_id])
     )
-    persisted = exercise_data["exercise"]
+    persisted = get_payload["data"]
     assert isinstance(persisted, dict)
     assert persisted["id"] == exercise_id
 

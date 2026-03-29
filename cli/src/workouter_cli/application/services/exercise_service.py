@@ -63,6 +63,12 @@ class ExerciseService:
         Raises:
             ValueError: If same muscle group appears in both roles
         """
+        # Validate no duplicates within each role
+        if len(set(primary_ids)) != len(primary_ids):
+            raise ValueError("Duplicate muscle group IDs found in PRIMARY assignments")
+        if len(set(secondary_ids)) != len(secondary_ids):
+            raise ValueError("Duplicate muscle group IDs found in SECONDARY assignments")
+
         # Validate no duplicates between primary and secondary
         primary_set: set[str] = set(primary_ids)
         secondary_set: set[str] = set(secondary_ids)

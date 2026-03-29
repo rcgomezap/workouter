@@ -98,3 +98,35 @@ async def test_assign_muscle_groups_rejects_duplicate_roles() -> None:
         )
 
     repo.assign_muscle_groups.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_assign_muscle_groups_rejects_duplicate_primary_ids() -> None:
+    """Test duplicate PRIMARY IDs are rejected before repository call."""
+    repo = AsyncMock()
+    service = ExerciseService(exercise_repository=repo)
+
+    with pytest.raises(ValueError, match="Duplicate muscle group IDs found in PRIMARY"):
+        await service.assign_muscle_groups(
+            "ex1",
+            primary_ids=["mg1", "mg1"],
+            secondary_ids=[],
+        )
+
+    repo.assign_muscle_groups.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_assign_muscle_groups_rejects_duplicate_secondary_ids() -> None:
+    """Test duplicate SECONDARY IDs are rejected before repository call."""
+    repo = AsyncMock()
+    service = ExerciseService(exercise_repository=repo)
+
+    with pytest.raises(ValueError, match="Duplicate muscle group IDs found in SECONDARY"):
+        await service.assign_muscle_groups(
+            "ex1",
+            primary_ids=[],
+            secondary_ids=["mg2", "mg2"],
+        )
+
+    repo.assign_muscle_groups.assert_not_awaited()
