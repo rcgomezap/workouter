@@ -13,6 +13,7 @@ from app.presentation.graphql.inputs.exercise import (
     MuscleGroupAssignmentInput,
     UpdateExerciseInput,
 )
+from app.presentation.graphql.resolvers.exercise import map_exercise
 from app.presentation.graphql.types.exercise import Exercise
 
 
@@ -26,9 +27,7 @@ class ExerciseMutation:
             name=input.name, description=input.description, equipment=input.equipment
         )
         e = await info.context.exercise_service.create_exercise(dto)
-        return Exercise(
-            id=e.id, name=e.name, description=e.description, equipment=e.equipment, muscle_groups=[]
-        )
+        return map_exercise(e)
 
     @strawberry.mutation
     async def update_exercise(
@@ -38,9 +37,7 @@ class ExerciseMutation:
             name=input.name, description=input.description, equipment=input.equipment
         )
         e = await info.context.exercise_service.update_exercise(id, dto)
-        return Exercise(
-            id=e.id, name=e.name, description=e.description, equipment=e.equipment, muscle_groups=[]
-        )
+        return map_exercise(e)
 
     @strawberry.mutation
     async def delete_exercise(self, info: Info[Context, None], id: UUID) -> bool:
@@ -61,6 +58,4 @@ class ExerciseMutation:
             for m in muscle_group_ids
         ]
         e = await info.context.exercise_service.assign_muscle_groups(exercise_id, dtos)
-        return Exercise(
-            id=e.id, name=e.name, description=e.description, equipment=e.equipment, muscle_groups=[]
-        )
+        return map_exercise(e)

@@ -2,10 +2,14 @@ from collections.abc import Sequence
 from uuid import UUID
 
 from sqlalchemy import delete, func, insert, select
+from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from sqlalchemy.orm.base import NO_VALUE
 
-from app.domain.entities.exercise import Exercise
+from app.domain.entities.exercise import Exercise, ExerciseMuscleGroup
+from app.domain.entities.muscle_group import MuscleGroup
+from app.domain.enums import MuscleRole
 from app.domain.repositories.exercise import ExerciseRepository
 from app.infrastructure.database.models.exercise import ExerciseTable, exercise_muscle_group
 from app.infrastructure.database.repositories.base import SQLAlchemyBaseRepository
@@ -26,7 +30,8 @@ class SQLAlchemyExerciseRepository(
         result = await self._session.execute(stmt)
         model_obj = result.scalar_one_or_none()
         if model_obj:
-            return self._to_domain(model_obj)
+            roles_by_muscle_group = await self._get_roles_by_muscle_group(id)
+            return self._to_domain_with_roles(model_obj, roles_by_muscle_group)
         return None
 
     async def list(self, offset: int = 0, limit: int = 20) -> Sequence[Exercise]:
@@ -37,7 +42,11 @@ class SQLAlchemyExerciseRepository(
             .options(selectinload(ExerciseTable.muscle_groups))
         )
         result = await self._session.execute(stmt)
-        return [self._to_domain(row) for row in result.scalars().all()]
+        models = result.scalars().all()
+        roles_by_exercise = await self._get_roles_by_exercise([m.id for m in models])
+        return [
+            self._to_domain_with_roles(row, roles_by_exercise.get(row.id, {})) for row in models
+        ]
 
     async def list_by_muscle_group(
         self, muscle_group_id: UUID, offset: int = 0, limit: int = 20
@@ -51,7 +60,11 @@ class SQLAlchemyExerciseRepository(
             .options(selectinload(ExerciseTable.muscle_groups))
         )
         result = await self._session.execute(stmt)
-        return [self._to_domain(row) for row in result.scalars().all()]
+        models = result.scalars().all()
+        roles_by_exercise = await self._get_roles_by_exercise([m.id for m in models])
+        return [
+            self._to_domain_with_roles(row, roles_by_exercise.get(row.id, {})) for row in models
+        ]
 
     async def count_by_muscle_group(self, muscle_group_id: UUID) -> int:
         stmt = (
@@ -102,14 +115,46 @@ class SQLAlchemyExerciseRepository(
                 )
 
         await self._session.flush()
-        await self._session.refresh(model_obj)
-        return self._to_domain(model_obj)
+        refreshed = await self.get_by_id(entity.id)
+        if refreshed is None:
+            raise ValueError(f"Entity with id {entity.id} not found")
+        return refreshed
 
-    def _to_domain(self, model_obj: ExerciseTable) -> Exercise:
-        # Note: In a real implementation, you'd handle the role from the association table
-        # This requires more complex querying or mapping.
-        # For now, simplifying by ignoring muscle_groups if they are not loaded
-        # to avoid MissingGreenlet errors during Pydantic validation.
+    async def _get_roles_by_exercise(
+        self, exercise_ids: Sequence[UUID]
+    ) -> dict[UUID, dict[UUID, MuscleRole]]:
+        if not exercise_ids:
+            return {}
+
+        stmt = select(
+            exercise_muscle_group.c.exercise_id,
+            exercise_muscle_group.c.muscle_group_id,
+            exercise_muscle_group.c.role,
+        ).where(exercise_muscle_group.c.exercise_id.in_(exercise_ids))
+
+        result = await self._session.execute(stmt)
+        roles_by_exercise: dict[UUID, dict[UUID, MuscleRole]] = {}
+
+        for exercise_id, muscle_group_id, role in result.all():
+            roles_by_exercise.setdefault(exercise_id, {})[muscle_group_id] = MuscleRole(role)
+
+        return roles_by_exercise
+
+    async def _get_roles_by_muscle_group(self, exercise_id: UUID) -> dict[UUID, MuscleRole]:
+        roles_by_exercise = await self._get_roles_by_exercise([exercise_id])
+        return roles_by_exercise.get(exercise_id, {})
+
+    def _to_domain_with_roles(
+        self,
+        model_obj: ExerciseTable,
+        roles_by_muscle_group: dict[UUID, MuscleRole],
+    ) -> Exercise:
+        muscle_groups = [
+            ExerciseMuscleGroup(muscle_group=MuscleGroup.model_validate(mg), role=role)
+            for mg in model_obj.muscle_groups
+            if (role := roles_by_muscle_group.get(mg.id)) is not None
+        ]
+
         return Exercise(
             id=model_obj.id,
             name=model_obj.name,
@@ -117,7 +162,23 @@ class SQLAlchemyExerciseRepository(
             equipment=model_obj.equipment,
             created_at=model_obj.created_at,
             updated_at=model_obj.updated_at,
-            muscle_groups=None,
+            muscle_groups=muscle_groups,
+        )
+
+    def _to_domain(self, model_obj: ExerciseTable) -> Exercise:
+        muscle_groups: list[ExerciseMuscleGroup] | None = None
+        inspection = sa_inspect(model_obj)
+        if inspection.attrs.muscle_groups.loaded_value is not NO_VALUE:
+            muscle_groups = []
+
+        return Exercise(
+            id=model_obj.id,
+            name=model_obj.name,
+            description=model_obj.description,
+            equipment=model_obj.equipment,
+            created_at=model_obj.created_at,
+            updated_at=model_obj.updated_at,
+            muscle_groups=muscle_groups,
         )
 
     def _to_model(self, entity: Exercise) -> ExerciseTable:
