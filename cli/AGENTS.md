@@ -235,35 +235,31 @@ workouter-cli
 
 ## Agent Skills
 
+### workouter-cli
+
+Path: `cli/.agents/skills/workouter-cli/SKILL.md`
+
+Purpose: Tool-first skill for selecting and executing Workouter CLI commands with strong ID resolution and output/error handling defaults.
+
+Use this skill when requests involve:
+
+- Translating user intent into exact command invocations
+- Resolving entity IDs before create/update/delete actions
+- Performing CRUD and workflow operations across command groups
+- Validating output contracts and recovering from command failures
+
 ### workouter-coach
 
 Path: `cli/.agents/skills/workouter-coach/SKILL.md`
 
-Purpose: AI-agent-centric personal trainer workflow that translates coaching intents into concrete CLI operations.
+Purpose: General coaching workflow skill for planning and guidance using Workouter CLI with lighter operational detail.
 
-Use this skill when requests involve:
+Planning order enforced by the skill:
 
-- Creating mesocycles and mesocycle weeks
-- Designing routines and exercise/set prescriptions
-- Planning sessions for a week
-- Running live workout tracking (set-by-set reps/weight/RIR)
-- Tracking bodyweight trends and check-ins
-- Completing sessions with notes
-- Producing progression recommendations from insights
-
-Typical command mapping covered by the skill:
-
-- Planning: `mesocycles create|add-week|add-session`, `routines create|add-exercise|add-set`, `calendar range`
-- Live coaching: `workout today|start|log|complete` (or `sessions log-set`)
-- Progression: `insights overload|intensity|volume|history`
-- Bodyweight: `bodyweight log|list|update|delete`
-- Full lifecycle support: all command groups (`workout`, `exercises`, `routines`, `mesocycles`, `sessions`, `bodyweight`, `insights`, `calendar`, `backup`, `schema`)
-
-Default run mode for agents:
-
-- Prefer `workouter-cli --json ...`
-- Resolve missing IDs via list commands before mutations
-- Use `schema` command when output format is unknown
+- Create mesocycle first
+- Create routines or reuse/update existing routines when requested
+- Plan weeks inside the mesocycle
+- Plan sessions inside those weeks
 
 ### Common Patterns
 
