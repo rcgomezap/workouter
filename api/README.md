@@ -109,10 +109,10 @@ version as the CLI.
 
 ```bash
 # Stable tag for a release
-docker pull <dockerhub-username>/workouter-api:0.1.3
+docker pull rcgomezap/workouter-api:x.x.x
 
 # Latest release
-docker pull <dockerhub-username>/workouter-api:latest
+docker pull rcgomezap/workouter-api:latest
 ```
 
 Supported platforms:
@@ -127,7 +127,7 @@ docker run --rm -p 8000:8000 \
   -v "$(pwd)/config.yaml:/app/config.yaml" \
   -v "$(pwd)/data:/app/data" \
   -v "$(pwd)/backups:/app/backups" \
-  <dockerhub-username>/workouter-api:latest
+  rcgomezap/workouter-api:latest
 ```
 
 ## Documentation

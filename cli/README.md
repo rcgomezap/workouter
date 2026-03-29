@@ -13,7 +13,7 @@ A command-line interface for the Workouter API - track your workouts from the te
 
 ## Quick Start
 
-### Installation
+### Run with Python (Development-Friendly)
 
 ```bash
 # Install uv (if not already installed)
@@ -30,9 +30,22 @@ export WORKOUTER_API_KEY=your-api-key-here
 uv run workouter-cli --help
 ```
 
-### Self-contained Binary
+### Run with Prebuilt Binary (No Python Required)
 
-You can build a single-file executable that doesn't require Python:
+Prebuilt binaries are published in GitHub Releases for tagged versions:
+
+- https://github.com/rcgomezap/workouter/releases
+
+Example usage after downloading a release asset:
+
+```bash
+chmod +x workouter-cli-<platform>
+./workouter-cli-<platform> --help
+```
+
+### Build a Self-contained Binary Locally
+
+You can also build a single-file executable from source:
 
 ```bash
 # Build for your current OS
@@ -42,7 +55,7 @@ make binary
 ./dist/workouter-cli --help
 ```
 
-For Linux distribution, the release pipeline publishes a standalone executable (`workouter-cli-linux-x86_64`):
+For Linux, the release pipeline publishes `workouter-cli-linux-x86_64`:
 
 ```bash
 chmod +x workouter-cli-linux-x86_64
@@ -97,7 +110,8 @@ workouter-cli --json exercises get <uuid> || echo "Exit code: $?"
 
 - **[DESIGN.md](./DESIGN.md)**: Comprehensive system design and architecture
 - **[AGENTS.md](./AGENTS.md)**: Setup, commands, and workflows for AI coding agents
-- **Agent Skill**: `cli/.agents/skills/workouter-coach/SKILL.md` for AI personal trainer workflows (planning, live tracking, bodyweight, progression, full command coverage)
+- **Agent Skill (Tool-focused)**: `cli/.agents/skills/workouter-cli/SKILL.md` for command mapping, ID resolution, CRUD/workflow execution, and output/error handling
+- **Agent Skill (Coach workflow)**: `cli/.agents/skills/workouter-coach/SKILL.md` for higher-level planning and coaching guidance
 - **[API Schema](../api/schema.graphql)**: GraphQL schema reference
 
 ## Development
